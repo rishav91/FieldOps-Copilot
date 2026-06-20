@@ -1,0 +1,22 @@
+%% FieldOps Copilot — the one agent loop (intake triage)
+%% Runs only on requests the confidence gate flags ambiguous.
+flowchart TD
+  IN["Ambiguous request<br/><small>low conf / multi-label / multi-agency</small>"]:::agent
+  PLAN["Plan<br/><small>choose next tool from the ambiguity</small>"]:::agent
+  ACT["Act → Observe<br/><small>call read-only tool, read result</small>"]:::agent
+  REF{"Reflect<br/><small>confident enough to route?</small>"}:::human
+  DEC["Decide<br/><small>route / split into N / escalate</small>"]:::agent
+  OUT["→ SLA + drafting DAG<br/><small>back to deterministic pipeline</small>"]:::det
+  CAP["Turn cap → human<br/><small>graceful give-up</small>"]:::human
+  TOOLS["Read-only tool menu<br/><small>find_similar_tickets · lookup_agency_jurisdiction<br/>get_historical_resolutions · classify_subissue</small>"]:::ext
+
+  IN --> PLAN --> ACT --> REF
+  REF -- "need more context" --> PLAN
+  REF -- "confident" --> DEC --> OUT
+  REF -. "cap hit" .-> CAP
+  ACT -. "uses" .-> TOOLS
+
+  classDef det fill:#cfe3f7,stroke:#5b8fc7,color:#15314f;
+  classDef agent fill:#fce3c2,stroke:#d99441,color:#5a3a12;
+  classDef human fill:#d6efd6,stroke:#5fa85f,color:#1f4d22;
+  classDef ext fill:#e4e4e7,stroke:#9a9aa3,color:#33333a;
