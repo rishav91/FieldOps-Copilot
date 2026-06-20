@@ -1,0 +1,27 @@
+%% FieldOps Copilot — end-to-end architecture
+%% Deterministic by default; one agent loop on the ambiguous tail.
+flowchart TD
+  SRC["NYC 311 Socrata API<br/><small>daily delta</small>"]:::ext
+  ING["Ingest + normalize<br/><small>cron · idempotent upsert</small>"]:::det
+  DED["Deduplication<br/><small>embeddings + geo/time window</small>"]:::det
+  CLS["Classifier + agency routing<br/><small>cheap → LLM cascade · calibrated confidence</small>"]:::det
+  GATE{"Confidence gate"}:::human
+  AGENT["Intake Triage Agent<br/><small>plan · tool use · reflect</small>"]:::agent
+  SLA["SLA risk model<br/><small>tabular · as-of-creation features</small>"]:::det
+  DRAFT["Work-order drafting DAG<br/><small>fan-out → draft → validate → 1 repair</small>"]:::det
+  HUMAN{"Human gate<br/><small>approve / edit / reject</small>"}:::human
+  LINEAR[("Linear<br/><small>system of record · OAuth · simulated sink</small>")]:::ext
+  PW["Playwright · v2<br/><small>real 311 status portal (read-only)</small>"]:::ext
+
+  SRC --> ING --> DED --> CLS --> GATE
+  GATE -- "high conf · single agency · fast path" --> SLA
+  GATE -- "low conf / multi-label / multi-agency" --> AGENT
+  AGENT --> SLA
+  SLA --> DRAFT --> HUMAN
+  HUMAN -- approved --> LINEAR
+  PW -. "enrichment" .-> DED
+
+  classDef det fill:#cfe3f7,stroke:#5b8fc7,color:#15314f;
+  classDef agent fill:#fce3c2,stroke:#d99441,color:#5a3a12;
+  classDef human fill:#d6efd6,stroke:#5fa85f,color:#1f4d22;
+  classDef ext fill:#e4e4e7,stroke:#9a9aa3,color:#33333a;
