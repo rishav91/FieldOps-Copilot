@@ -26,7 +26,9 @@ class Tier(str, enum.Enum):
 def get_llm(tier: Tier) -> LLMClient:
     s = get_settings()
     if tier is Tier.CHEAP:
-        return GrokClient(api_key=s.xai_api_key or "", model=s.grok_cheap_model, base_url=s.xai_base_url)
+        return GrokClient(
+            api_key=s.xai_api_key or "", model=s.grok_cheap_model, base_url=s.xai_base_url
+        )
     if tier is Tier.AGENT:
         return OpenAIClient(api_key=s.openai_api_key or "", model=s.openai_agent_model)
     if tier is Tier.EMBED:

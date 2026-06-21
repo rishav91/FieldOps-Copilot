@@ -17,4 +17,6 @@ class GrokClient(OpenAIClient):
         super().__init__(api_key=api_key, model=model, embed_model=None)
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        raise NotImplementedError("Embeddings use the OpenAI tier (ADR-003); call get_llm(Tier.EMBED).")
+        raise NotImplementedError(
+            "Embeddings use the OpenAI tier (ADR-003); call get_llm(Tier.EMBED)."
+        )

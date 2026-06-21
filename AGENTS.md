@@ -53,6 +53,6 @@ Python · FastAPI · Postgres + pgvector (single store) · LangGraph (the one ag
 - **Stable IDs:** `FR-x.y`, `NFR-x.y`, `ADR-00N` — append-only, never renumbered. Reference inline (e.g. "enforces NFR-4.1").
 - **Scope discipline:** SLA model, Playwright enrichment, Airflow/dbt/warehouse, and citywide scale are explicitly **deferred** — don't pull them into the MVP.
 - **Everything is traced; everything is idempotent** (upsert by `unique_key`, agent by `routing_decision_id`, submission by `draft_hash`).
-- **Plan before building a phase.** Before implementing any [ROADMAP](docs/ROADMAP.md) phase, write `docs/plans/phase-N.md` (template + index in [docs/plans/](docs/plans/README.md)) — what it achieves + commit-sized sub-phases — and get it reviewed first. Then implement sub-phase by sub-phase.
+- **Branch + plan before building a phase.** Before implementing any [ROADMAP](docs/ROADMAP.md) phase, (1) check out a dedicated branch off `main` (e.g. `phase-1-ingest-dedup`), and (2) write `docs/plans/phase-N.md` (template + index in [docs/plans/](docs/plans/README.md)) — what it achieves + commit-sized sub-phases — and get it reviewed first. Then implement sub-phase by sub-phase.
 - **Commits:** Conventional Commits; no `Co-Authored-By` trailer.
 - Keep docs cross-linked with relative links and the [docs/README.md](docs/README.md) map current when adding a doc.
