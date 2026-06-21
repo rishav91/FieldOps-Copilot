@@ -6,7 +6,6 @@ from datetime import datetime
 import pytest
 
 from fieldops.config import get_settings
-from fieldops.llm import Tier, get_llm
 from fieldops.llm.base import ChatMessage, LLMClient
 from fieldops.pipeline.draft import _draft_hash
 from fieldops.pipeline.ingest import _parse_dt, _to_float, load_sample_record
@@ -39,10 +38,12 @@ def test_draft_hash_is_deterministic_and_content_sensitive():
     assert _draft_hash("t1", d1) != _draft_hash("t1", {"owner": "HPD", "next_action": "x"})
 
 
-def test_factory_requires_keys_offline():
-    # No keys in the test env -> constructing a client fails fast, no network call.
+def test_client_requires_key():
+    # Missing key -> fail fast at construction, independent of ambient .env.
+    from fieldops.llm.openai_client import OpenAIClient
+
     with pytest.raises(ValueError):
-        get_llm(Tier.AGENT)
+        OpenAIClient(api_key="", model="gpt-4o")
 
 
 def test_chatmessage_and_protocol():
