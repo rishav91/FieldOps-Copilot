@@ -1,0 +1,12 @@
+{
+  "unique_key": "59812345",
+  "created_date": "2024-03-14T08:21:00.000",
+  "closed_date": null,
+  "complaint_type": "Water System",
+  "descriptor": "Water leak from ceiling and floor appears to be buckling",
+  "agency": "DEP",
+  "borough": "BROOKLYN",
+  "latitude": "40.6782",
+  "longitude": "-73.9442",
+  "status": "Open"
+}
