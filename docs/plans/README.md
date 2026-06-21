@@ -7,7 +7,7 @@ These are *implementation* docs (the how-and-in-what-order), distinct from the d
 | Phase | Plan | Status |
 |-------|------|--------|
 | 0 | [phase-0.md](phase-0.md) | ✅ shipped |
-| 1 | [phase-1.md](phase-1.md) | 📋 planned |
+| 1 | [phase-1.md](phase-1.md) | ✅ shipped |
 
 ## Template
 

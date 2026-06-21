@@ -1,5 +1,7 @@
 # Phase 1 — Ingest + dedup (+ ambiguity profiling)
 
+**Status:** ✅ shipped on `phase-1-ingest-dedup` (sub-phases 1.1–1.7 each committed). `ruff` clean, 35 tests pass; live-verified with a real 40-record Brooklyn backfill + ambiguity profile.
+
 **Goal (from [ROADMAP](../ROADMAP.md#phase-1)):** real data in, duplicates suppressed, *and the ambiguous-request population profiled* to feed the Phase 2 GO/NO-GO gate.
 
 **Achieves:** clean canonical Brooklyn tickets (12-month backfill + daily-delta path) with embeddings and deterministic dedup links, a labeled dedup eval set with a measured precision, and a profile of how much genuine ambiguity exists — the data needed to decide whether the agent is justified ([PRD R2](../PRD.md#7-risks)). Closes **FR-1**, **FR-2**, and stands up **FR-8.1/8.9/8.14** for dedup; activates the **FR-10.1 / NFR-8.4** PII guardrail (embeddings call an external provider).
@@ -19,6 +21,15 @@
 | 1.5 | Dedup linking | Geo + time window + cosine threshold → `duplicate_of` link, `report_count` increment, `DUPLICATE` status; deterministic, never deletes ([ARCHITECTURE §3/§6](../ARCHITECTURE.md#3-components)) | `dedup/link.py` | Known dup pair links to canonical; count increments | `feat(dedup): geo/time + cosine dedup with canonical linking` |
 | 1.6 | Dedup eval | Hand-labeled pairs (≥2 annotators, Cohen's κ — [FR-8.14](../REQUIREMENTS.md#fr-8--evaluation--observability)); precision/recall harness; dataset card + frozen split ([FR-8.9](../REQUIREMENTS.md#fr-8--evaluation--observability)) | `eval/dedup_eval.py`, `data/dedup_pairs.jsonl` | Precision ≥ 0.90 ([NFR-4.2](../REQUIREMENTS.md#nfr-4--correctness--calibration)); κ reported | `test(dedup): labeled pair eval set + precision/recall harness` |
 | 1.7 | Ambiguity profile | Counts of multi-agency / multi-issue / low-text-confidence candidates over the backfill → report for the Phase 2 gate ([PRD R2](../PRD.md#7-risks)) | `profiling/ambiguity.py`, report output | Report with counts + examples; documented for the gate decision | `feat(profiling): ambiguous-request population profile` |
+
+## Outcome (shipped)
+
+- **1.1–1.7 each committed** (`feat(ingest)…` → `feat(profiling)…`). CLI: `ingest --backfill/--delta`, `embed`, `dedup`, `profile-ambiguity`.
+- **Geo without PostGIS** resolved as planned: lat/lng bounding box in SQL + pgvector cosine; no extra extension.
+- **Carried to Phase 2 (gate inputs, not closed here):**
+  - Dedup precision target ([NFR-4.2](../REQUIREMENTS.md#nfr-4--correctness--calibration) ≥ 0.90) is wired via the harness + Cohen's κ, but measured against **synthetic** pairs and a fake embedder offline. Real-embedding precision on labeled *live* pairs is a Phase 2 input.
+  - The exit-criteria **12-month backfill** and ambiguity number need an **uncapped** run with `OPENAI_API_KEY` set (the demo used a 40-record cap). That uncapped profile is the actual GO/NO-GO input.
+  - **Complaint-type whitelist** (`TOP_COMPLAINT_TYPES`) is a curated starting set — refine against the full distribution.
 
 ## Risks / open questions
 
