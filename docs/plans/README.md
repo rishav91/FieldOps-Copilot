@@ -4,11 +4,14 @@ One plan per [ROADMAP](../ROADMAP.md) phase, written **before** any code for tha
 
 These are *implementation* docs (the how-and-in-what-order), distinct from the design suite (the *what* and *why*, which remains the source of truth). A plan never overrides the design docs; if implementation forces a design change, update the design doc in the same change.
 
-| Phase | Plan | Status |
-|-------|------|--------|
-| 0 | [phase-0.md](phase-0.md) | ✅ shipped |
-| 1 | [phase-1.md](phase-1.md) | ✅ shipped |
-| 2 | [phase-2.md](phase-2.md) | ✅ shipped · [gate decision](phase-2-gate.md) |
+Status is tracked on **two axes** (DR-18): **implementation** = planned / in-progress / complete, **validation** = pending / partial / complete (exit criteria actually met). "Complete + partial" means the code is merged but some declared exit criteria are still open.
+
+| Phase | Plan | Implementation | Validation |
+|-------|------|----------------|------------|
+| 0 | [phase-0.md](phase-0.md) | complete | complete |
+| 1 | [phase-1.md](phase-1.md) | complete | **partial** — full 12-mo backfill + live dedup precision still open |
+| 2 | [phase-2.md](phase-2.md) · [gate](phase-2-gate.md) | complete | **partial** — GO recommended, not yet confirmed; leakage-firewall + temporal-split fixes pending (DR-02/08) |
+| 3 | _not started_ | planned | pending |
 
 ## Template
 

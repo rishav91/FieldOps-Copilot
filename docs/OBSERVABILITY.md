@@ -105,6 +105,17 @@ human.gate ──▶ approve            ─▶ confirms routing+draft (positive 
 
 Captured on every review: `review_status`, `edited_fields`, `reject_reason`. This is the cheapest, highest-quality label source in the system ([EVAL-SPEC §2](EVAL-SPEC.md#2-eval-datasets--governance)).
 
+**Label-strength hierarchy (DR-12) — approval is *not* gold truth.** An approval can mean "correct," but also "good enough," time pressure, or automation-biased rubber-stamping. Weight feedback by strength, and **do not** fold bare approvals into a gold set or calibration refit at equal weight:
+
+| Signal | Strength |
+|--------|----------|
+| Independently audited / adjudicated outcome | strong |
+| Explicit edit, or reason-coded reject | strong correction |
+| Approval later confirmed by audit/outcome | medium |
+| Approval alone | **weak** implicit |
+
+Audit a random sample and track **wrong-approval rate by path and explanation condition** ([FR-8.13](REQUIREMENTS.md#fr-8--evaluation--observability)).
+
 ## 8. Logging, retention & data protection
 
 - **Structured logs** keyed by `ticket_id` / `trace_id`, with levels; one event schema across stages.

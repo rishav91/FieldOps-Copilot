@@ -1,6 +1,6 @@
 # Phase 1 — Ingest + dedup (+ ambiguity profiling)
 
-**Status:** ✅ shipped on `phase-1-ingest-dedup` (sub-phases 1.1–1.7 each committed). `ruff` clean, 35 tests pass; live-verified with a real 40-record Brooklyn backfill + ambiguity profile.
+**Status:** Implementation **complete** (merged, `phase-1-ingest-dedup`, 1.1–1.7); validation **partial** (DR-18). `ruff` clean, 35 tests pass. Open exit criteria: the full 12-month backfill and the live dedup-precision (NFR-4.2) measurement on labeled real pairs were not run at demo scale — the dedup harness is built and verified on synthetic pairs only.
 
 **Goal (from [ROADMAP](../ROADMAP.md#phase-1)):** real data in, duplicates suppressed, *and the ambiguous-request population profiled* to feed the Phase 2 GO/NO-GO gate.
 

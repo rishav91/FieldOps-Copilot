@@ -104,11 +104,12 @@ Split by task type — *that the eval is split this way is itself the senior sig
 
 **Generative** (work-order draft, resolution summary): **lead with deterministic hard checks** — cited-precedent-ID membership in the context bundle, agency match to routing, required fields present — *then* an LLM-judge rubric (actionability, grounding), *then* a human spot-check. **Report judge↔human agreement rate** so the soft metric has teeth.
 
-**Agent path — the headline artifact.** The triage agent must **beat two baselines** on the ambiguous set:
-1. **Baseline A:** a single classifier call (take its top label).
-2. **Baseline B:** "escalate all low-confidence to a human."
+**Agent path — the headline artifact.** The agent is measured on a **baseline ladder** that isolates the *loop* (full protocol in [EVAL-SPEC §5](EVAL-SPEC.md#5-agent-path-eval--the-headline)):
+1. **Baseline A:** single classifier call (top label) — no tools, no loop.
+2. **Baseline C (the keystone, DR-05):** **fixed retrieval + one structured call** — the *same* tools/context the agent gets, fetched once, no loop. The ship gate is **(agent − C)**: beating A only shows retrieval helps; beating C shows the *loop* helps.
+3. **Baseline B:** "escalate all low-confidence to a human" — a **cost/coverage reference, not a correctness comparator** (it abstains; DR-03).
 
-Metrics: routing/split **correctness**, **turn-count distribution**, **give-up rate**, **cost per resolution**, and **trace assertions** (e.g. *did it call `lookup_agency_jurisdiction` before deciding to split?*). **If it can't beat Baseline B, the agent is a gimmick and is cut** — this is the project's central empirical bet ([PRD R3](PRD.md#7-risks)).
+Metrics: routing **correctness** + **set-based** split metrics (Jaccard / exact-match), abstention scored separately, **turn-count**, **give-up rate**, **cost/latency per resolution**, and **trace assertions**. Agent-specific ground truth is an **adjudicated** route/split/escalate gold set (DR-04), not reused 311 labels. **If it can't beat Baseline C with a 95%-CI lower bound > 0, keep the fixed workflow and cut the loop** — the project's central empirical bet ([PRD R3](PRD.md#7-risks)).
 
 **Operational:** end-to-end latency, **cost per path** (fast vs. agent tail), human override rate, failed/abandoned agent steps, retry counts. Surfaced on the Streamlit dashboard.
 

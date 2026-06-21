@@ -1,6 +1,6 @@
 # Phase 2 — Cascade classifier + routing + calibrated confidence
 
-**Status:** ✅ shipped on `phase-2-cascade-routing` (2.1–2.8). Live gate run on a **~10k** Brooklyn sample; **GO/NO-GO decision in [phase-2-gate.md](phase-2-gate.md) — recommended GO, awaiting confirmation.** macro-F1 0.997, ECE 0.005, cheap-tier false-confidence 0.0 on a 2,004-ticket held-out split; **~10% agent tail (~1,000 real low-confidence tickets)** — the agent's primary population, no amplification needed.
+**Status:** Implementation **complete** (merged, `phase-2-cascade-routing`, 2.1–2.8); validation **partial** (DR-18). Live gate run on a **~10k** Brooklyn sample: macro-F1 0.997, ECE 0.005, cheap-tier false-confidence 0.0 on a 2,004-ticket split; **~10% agent tail (~1,000 real low-confidence tickets)** — the agent's primary population, no amplification needed. **GO/NO-GO recommended GO, awaiting confirmation** ([phase-2-gate.md](phase-2-gate.md)). Open before Phase 3: the leakage firewall + temporal-split / as-of-retrieval fixes ([ADR-011](../ADRs.md#adr-011), DR-02/DR-08) and the information-matched baseline ([EVAL-SPEC §5](../EVAL-SPEC.md#5-agent-path-eval--the-headline), DR-05).
 
 **Goal (from [ROADMAP](../ROADMAP.md#phase-2)):** route the easy majority with a confidence score that *means something*, then decide at the **GO/NO-GO gate** whether a real ambiguous population justifies the agent.
 

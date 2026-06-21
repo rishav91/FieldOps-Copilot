@@ -19,11 +19,13 @@ Municipal service-request intake (the workflow behind NYC 311) routes a high vol
 **The wedge:** an LLM cascade pre-fills routing on the easy majority *with a calibrated confidence score*, and a single, tightly-scoped agent loop reasons through the ambiguous tail — while the system stays deterministic everywhere the inputs are already disambiguated. The differentiator is **judgment about where the agent goes**, proven against a baseline — not "more AI."
 
 > **Framing honesty:** 311 already publishes the ground-truth labels (`agency`, `complaint_type`). This system *reproduces and pre-fills* those decisions; it does not claim to discover them de novo. That makes the labels free evaluation ground truth (see [ADR-006](ADRs.md#adr-006)). The real-world analogue is reducing call-center handle time, not replacing the city.
+>
+> **Input modality (DR-01):** the public 311 fields are the city's *controlled-vocabulary, post-intake* record, not the raw citizen utterance. So the classifier reproduces a near-deterministic mapping (F1 ~0.99) — strong, but *not* proof the agent is needed. The agent's natural population is the **low-confidence tail** of that data; any raw multi-issue *narratives* it reasons over are **curated/synthetic and disclosed** (we simulate the input modality, not just amplify a tail). See [README §what's real vs simulated](README.md#whats-real-vs-simulated-read-this-honestly).
 
 ## 2. Goals & non-goals
 
 **Goals (outcomes):**
-- G1 — Pre-fill agency routing on the easy majority with calibrated confidence, so humans only see what's genuinely uncertain.
+- G1 — Pre-fill agency routing on the easy majority with calibrated confidence, so the easy majority **bypasses manual triage** (it still passes a quick submission-approval gate; see [§4 use cases](#4-core-use-cases) and the two gates below). Humans spend their *investigation* time only on the genuinely uncertain tail.
 - G2 — Resolve the ambiguous tail with one agent loop that **provably beats** both a single-classifier call and a blanket escalate-to-human baseline.
 - G3 — Produce grounded, human-reviewable work orders with zero ungated side effects.
 - G4 — Make every claim measurable: discriminative metrics against 311 labels, hard checks + judge for generation, a fairness audit, and a red-team study.
@@ -73,11 +75,18 @@ The [governing principle](README.md#governing-principle) decides each component'
 | Work-order drafting | No | Inputs already disambiguated → fixed DAG, one bounded repair ([ADR-008](ADRs.md#adr-008)). |
 | Submit to Linear | No | Deterministic, post human gate. |
 
+**Two distinct human gates (DR-06).** These are separate workflows with separate metrics — don't conflate them:
+
+1. **Triage-resolution gate** — *only* the ambiguous/low-confidence tail (or agent escalations). A human decides `route` / `split` / `escalate`. Most tickets **never reach this** gate (they "bypass manual triage").
+2. **Submission-approval gate** — *every* drafted work order, easy or hard. A human approves / edits / rejects before it reaches Linear. Quick for easy tickets; nothing is auto-submitted.
+
+So "bypasses manual triage" ≠ "auto-handled" ≠ "autonomous": the easy majority skips gate 1 but still passes gate 2. Workload is measured separately per gate ([OBSERVABILITY §3](OBSERVABILITY.md#3-metrics--dashboards)): active triage minutes vs. approval minutes, touches/ticket, edit rate, escalation share, final submission rate.
+
 ## 6. Success metrics
 
 **Product (portfolio-framed — "did it demonstrably work"):**
 - Routing pre-fill: agency-routing **F1 ≥ existing rule-table baseline** on held-out 311 labels (target macro-F1 ≥ 0.85 on top-10 types).
-- Human review load: ≥ 60% of tickets auto-handled below the gate (no agent, single-pass draft).
+- Human review load: ≥ 60% of tickets **bypass manual triage** (no agent investigation; single-pass draft) — they are *not* auto-submitted; they still pass the submission-approval gate. Never call this "autonomous" or "straight-through."
 - Agent value (headline): triage agent beats **both** baselines on the ambiguous set — see [NFR-4.3](REQUIREMENTS.md#nfr-4--correctness--calibration) and [EVAL §agent path](AI-ARCHITECTURE.md#5-evaluation). If it can't beat "escalate all low-confidence to human," it is cut.
 - Time-to-first-value: end-to-end demo (ingest → routed → drafted → submitted) runs on real Brooklyn data within Phase 4.
 

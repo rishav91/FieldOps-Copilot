@@ -20,6 +20,7 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 |----|-------------|-----|-----------|
 | FR-2.1 | Embed each ticket and store the vector (pgvector, HNSW). | P0 | Vector present per ticket; ANN query returns neighbors. |
 | FR-2.2 | Link near-duplicates within a geo + time window above a similarity threshold. | P0 | `duplicate_of` edge written; canonical `report_count` increments; no deletion. |
+| FR-2.2a | **Three-band dedup** (DR-15): very-high-confidence auto-link, a gray-zone *review* band (no auto-suppression), no-link. Preserve all source descriptions on the canonical; don't suppress a report carrying materially new issue/severity content. | P1 | Auto-link target set well above 0.90 with a reported lower CI bound; gray-zone cases flagged, not merged. |
 | FR-2.3 | Hand-labeled eval set of a few hundred dedup pairs. | P0 | Labeled set exists; precision/recall computed against it ([NFR-4.2](#nfr-4--correctness--calibration)). |
 | FR-2.4 | Dedup threshold is config-tunable. | P1 | Change threshold without redeploy. |
 
@@ -30,6 +31,7 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 | FR-3.2 | Output agency + complaint-type label with a **calibrated** confidence. | P0 | `routing_decision` row with `confidence_calibrated`. |
 | FR-3.3 | Detect multi-label / multi-agency cases. | P0 | Such cases flagged for the gate regardless of score. |
 | FR-3.4 | Score calibration (Platt/isotonic) on a held-out set + reliability curve. | P0 | ECE meets [NFR-4.1](#nfr-4--correctness--calibration); curve is an artifact. |
+| FR-3.5 | **Inference feature contract** (DR-02, [ADR-011](ADRs.md#adr-011)): classifiers/agent/tools receive a typed as-of `InferenceTicket`, never the raw canonical row/payload; target + post-outcome fields are prohibited from prediction paths. | P0 | A test fails if a target/post-outcome field enters a prompt, embedding, or retrieval feature. |
 
 ### FR-4 — Confidence gate
 | ID | Requirement | Pri | Acceptance |
@@ -46,7 +48,8 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 | FR-5.3 | Per-turn tracing to `agent_trace` (tool, args, result, reflection, tokens, cost). | P0 | One row per turn; visible in dashboard. |
 | FR-5.4 | Hard turn cap with graceful give-up → human queue (partial findings attached). | P0 | Cap hit → status `ESCALATED`, no silent guess. |
 | FR-5.5 | Structured tool-arg validation before each call; idempotency keyed on `routing_decision_id`. | P0 | Invalid args rejected pre-call; re-runs don't duplicate. |
-| FR-5.6 | Agent must beat Baseline A (single classifier) **and** Baseline B (escalate-all). | P0 | See [NFR-4.3](#nfr-4--correctness--calibration); if it fails B, the agent is cut. |
+| FR-5.6 | Agent must beat the **information-matched Baseline C** (fixed retrieval + one call). | P0 | See [NFR-4.3](#nfr-4--correctness--calibration); fails C → keep fixed workflow, cut the loop (DR-05). |
+| FR-5.7 | **As-of retrieval** (DR-08, [ADR-011](ADRs.md#adr-011)): every tool/eval retrieval enforces `candidate.created_date < subject.created_date`, excludes self / split children / known duplicates, and pins a snapshot. | P0 | Adversarial future-/self-/duplicate-neighbor tests pass. |
 
 ### FR-6 — Work-order drafting DAG
 | ID | Requirement | Pri | Acceptance |
@@ -70,10 +73,13 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 | FR-8.1 | Discriminative eval vs. 311 labels (F1, precision/recall, confusion, calibration). | P0 | Metrics reproducible from a script. |
 | FR-8.2 | Generative eval: hard checks → LLM-judge → human spot-check, with judge↔human agreement. | P0 | All three reported; agreement rate shown. |
 | FR-8.3 | Agent-vs-baseline study (correctness, turn dist, give-up rate, cost, trace assertions). | P0 | Headline comparison reproducible. |
+| FR-8.3a | **Information-matched baseline C** (DR-05): fixed retrieval + one structured call, same tools/context/model/schema as the agent, no loop. Ship gate compares agent vs. **C**. | P0 | [EVAL-SPEC §5](EVAL-SPEC.md#5-agent-path-eval--the-headline); tool ablations reported. |
+| FR-8.3b | **Adjudicated route/split/escalate gold set** (DR-04) with set-based split metrics; abstention scored separately. | P1 | ≥2 annotators + κ; natural vs. synthetic separate. |
+| FR-8.3c | **Human-workflow study** (DR-03/07): unaided vs. agent-assisted review; non-inferior correctness + reduced handling time (95% CI). Minimal blinded harness is a **Phase-3** deliverable. | P1 | [EVAL-SPEC §5a](EVAL-SPEC.md#5a-human-workflow-study-dr-03dr-07). |
 | FR-8.4 | Operational metrics: latency, cost per path, override rate, abandoned steps, retries. | P0 | Streamlit dashboard surfaces them. |
 | FR-8.5 | Fairness audit: Census/ACS tract join by complaint type; ecological-fallacy caveat. | P1 | Disparity reported *or* claim explicitly downgraded ([AI-ARCH §7](AI-ARCHITECTURE.md#7-fairness--governance)). |
 | FR-8.6 | Red-team study: prompt injection + adversarial mis-routing; document break + mitigation. | P1 | Write-up exists. |
-| FR-8.7 | Agent-vs-baseline reported with **sample size, bootstrap 95% CIs, and a significance test**; cut-decision uses the CI lower bound. | P0 | See [EVAL-SPEC §5](EVAL-SPEC.md#5-agent-path-eval--the-headline); meets [NFR-4.5](#nfr-4--correctness--calibration). |
+| FR-8.7 | Agent-vs-baseline reported with **sample size, bootstrap 95% CIs, and a significance test**; cut-decision uses the CI lower bound on **(agent − Baseline C)**. | P0 | See [EVAL-SPEC §5](EVAL-SPEC.md#5-agent-path-eval--the-headline); meets [NFR-4.5](#nfr-4--correctness--calibration). |
 | FR-8.8 | LLM-judge **validated** (gold-set agreement, position/verbosity-bias, prompt sensitivity) before its scores are trusted. | P1 | [EVAL-SPEC §4](EVAL-SPEC.md#4-generative-eval); judge fails → downgraded to advisory. |
 | FR-8.9 | Eval datasets **versioned + provenance-tracked**, with a **frozen test split never used for tuning/calibration**. | P0 | Dataset cards exist; test split isolated by time. |
 | FR-8.10 | **Eval gates in CI**: regression beyond a set delta on key metrics fails the build. | P1 | [EVAL-SPEC §11](EVAL-SPEC.md#11-ci-gates--reproducibility). |
@@ -128,18 +134,18 @@ Ingest + backfill (FR-1) → dedup with eval set (FR-2) → calibrated cascade c
 ### NFR-3 — Availability & reliability
 | ID | Requirement |
 |----|-------------|
-| NFR-3.1 | LLM provider outage degrades to the alternate provider; if all fail, tickets queue for replay with **zero data loss** ([ARCHITECTURE §7](ARCHITECTURE.md#7-failure-modes--degradation)). |
+| NFR-3.1 | LLM provider outage degrades to the alternate provider **only for a provider/model/prompt/calibrator combo that has passed tier eval** ([ADR-003](ADRs.md#adr-003), DR-14); an unvalidated alternate **fails closed** to low-confidence → human/queue. If all fail, tickets queue for replay with **zero data loss** ([ARCHITECTURE §7](ARCHITECTURE.md#7-failure-modes--degradation)). |
 | NFR-3.2 | All writes idempotent: upsert by `unique_key`, agent by `routing_decision_id`, submission by `draft_hash`. Replays never double-write. |
 | NFR-3.3 | Validator and submission **fail closed** — on doubt, nothing is submitted. |
 
 ### NFR-4 — Correctness & calibration
 | ID | Requirement |
 |----|-------------|
-| NFR-4.1 | Classifier **Expected Calibration Error (ECE) ≤ 0.05** on the held-out set; reliability curve published ([ADR-007](ADRs.md#adr-007)). |
+| NFR-4.1 | Classifier **Expected Calibration Error (ECE) ≤ 0.05** on the held-out set; reliability curve published ([ADR-007](ADRs.md#adr-007)). Report calibration/error **by tier** (cheap/Groq/OpenAI) and important class, plus a **declared maximum tolerated fast-path error** (with a CI) and a risk-vs-coverage curve at the chosen gate operating point (DR-13). |
 | NFR-4.2 | Routing **macro-F1 ≥ 0.85** on top-10 types vs. 311 labels; dedup precision **≥ 0.90** on the labeled pair set. |
-| NFR-4.3 | Triage agent **beats Baseline A and Baseline B** on the ambiguous set (routing/split correctness), at acceptable give-up rate. Failing Baseline B → agent cut ([AI-ARCH §5](AI-ARCHITECTURE.md#5-evaluation)). |
+| NFR-4.3 | Triage agent **beats the information-matched Baseline C** (fixed retrieval + one call) on the ambiguous set (routing/split correctness), at acceptable give-up rate. Failing C → keep the fixed workflow, cut the loop (DR-05, [AI-ARCH §5](AI-ARCHITECTURE.md#5-evaluation)). Baseline B is a cost/coverage reference, not a correctness comparator (DR-03). |
 | NFR-4.4 | Generative drafts pass deterministic hard checks **100%** before reaching a human (validator gate); judge↔human agreement reported. |
-| NFR-4.5 | The agent-beats-baseline claim is reported with stated `n` and **bootstrap 95% CIs**; the agent ships only if the **lower CI bound of (agent − Baseline B) > 0** ([EVAL-SPEC §5](EVAL-SPEC.md#5-agent-path-eval--the-headline)). |
+| NFR-4.5 | The agent-beats-baseline claim is reported with stated `n` and **bootstrap 95% CIs**; the agent ships only if the **lower CI bound of (agent − Baseline C) > 0** ([EVAL-SPEC §5](EVAL-SPEC.md#5-agent-path-eval--the-headline)). |
 
 ### NFR-5 — Security & safety
 | ID | Requirement |
@@ -171,7 +177,8 @@ Ingest + backfill (FR-1) → dedup with eval set (FR-2) → calibrated cascade c
 | NFR-8.1 | Use only data 311 already publishes; no inference of attributes about individual reporters. |
 | NFR-8.2 | No fairness statistic on a cell below the minimum sample size; ecological-fallacy caveat stated ([AI-ARCH §7](AI-ARCHITECTURE.md#7-fairness--governance)). |
 | NFR-8.3 | The governance won't-build list is honored in code review. |
-| NFR-8.4 | **No raw PII leaves the system boundary** to a third-party LLM; ticket text is redacted before any external call ([FR-10.1](#fr-10--guardrails)); verified by test. |
+| NFR-8.4 | **No raw PII leaves the system boundary** to a third-party LLM; ticket text **and retrieved tool results** are redacted before any external call or telemetry ([FR-10.1](#fr-10--guardrails)); verified by test. |
+| NFR-8.5 | **Per-destination egress policy** (DR-17): a field matrix governs what reaches local storage / embeddings / agent tools+traces / reviewer UI / Linear. Default to minimization; use coarse location for routing; send exact location to Linear only if needed and disclosed ([ADR-005](ADRs.md#adr-005)). |
 
 ---
 

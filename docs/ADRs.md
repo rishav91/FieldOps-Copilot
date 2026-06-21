@@ -16,6 +16,7 @@ Each ADR: **context → decision → alternatives → consequences**. Alternativ
 | [ADR-008](#adr-008) | Work-order drafting is a deterministic DAG, not an agent | Accepted |
 | [ADR-009](#adr-009) | Amplify + disclose if the ambiguous population is too thin | Accepted (conditional) |
 | [ADR-010](#adr-010) | Postgres + pgvector as the single store for MVP | Accepted |
+| [ADR-011](#adr-011) | Inference feature contract + temporal leakage firewall | Accepted |
 
 ---
 
@@ -70,6 +71,7 @@ Each ADR: **context → decision → alternatives → consequences**. Alternativ
 - `+` Tiering maps cleanly to cost: Groq absorbs high-volume classification cheaply; OpenAI carries the quality-critical reasoning.
 - `−` Two providers to key, monitor, and rate-limit; the abstraction must design to their common subset (can't lean on provider-specific features).
 - `−` Evals must be re-run per tier if a default model changes — behavior isn't portable even though the interface is; Groq and OpenAI must each be eval'd on the tier they serve.
+- `−` **Interface compatibility ≠ behavioral interchangeability (DR-14).** A score calibrated for one provider/model/prompt is not valid for another. Automatic failover ([NFR-3.1](REQUIREMENTS.md#nfr-3--availability--reliability)) is allowed *only* to a combination that owns a validated calibrator/gate; otherwise fail closed to low-confidence → human/queue. The provider-swap regression ([FR-8.15](REQUIREMENTS.md#fr-8--evaluation--observability)) gates which combos are approved.
 
 ## ADR-004
 ### LangGraph for the single triage loop
@@ -190,3 +192,30 @@ Each ADR: **context → decision → alternatives → consequences**. Alternativ
 - `+` HNSW in pgvector handles dedup/retrieval at the target scale ([REQUIREMENTS §3](REQUIREMENTS.md#3-capacity-sizing)).
 - `−` pgvector won't match a dedicated vector DB at very large scale or very high QPS — accepted given demo scale; the partition plan + a later vector-DB swap is the escape hatch.
 - `−` Mixing OLTP + vector + trace workloads on one instance needs care as volume grows.
+
+## ADR-011
+### Inference feature contract + temporal leakage firewall
+
+**Status:** Accepted (must be enforced before Phase 3 agent retrieval).
+
+**Context (DR-02, DR-08).** The canonical `ticket` retains the published 311 fields, including the **targets** (`agency`, `complaint_type`) and **post-outcome** fields (`closed_date`, `status`, resolution text, downstream-assigned `due_date`). Today the classifier feeds `complaint_type` + `descriptor` to predict `agency` — defensible for "pre-fill routing from an assigned problem code," but it means the input nearly determines the label (macro-F1 ~0.99). Worse, the agent's planned retrieval tools (`find_similar_tickets`, `get_historical_resolutions`) and the kNN tier query over *all* embedded tickets with **no temporal guard**, and the classifier eval split is a hash, not time-based — so without controls, retrieval can surface a ticket's own future, a duplicate of itself, or records resolved after its creation, contaminating the headline agent result.
+
+**Decision.** Introduce a typed **`InferenceTicket`** (an as-of feature view) that is the *only* thing passed to classifiers, the agent, and tools — never the raw canonical row or payload. Fields are classed:
+
+| Class | Examples | Prediction access |
+|-------|----------|-------------------|
+| Allowed as-of input | redacted text representation, coarse location, creation time | allowed |
+| Evaluation-only target | `agency`, target problem/type, adjudicated split/escalate label | **prohibited** in prediction/tool paths |
+| Post-outcome | `closed_date`, `status`, resolution text, downstream `due_date` | **prohibited** |
+
+All retrieval (agent + eval) enforces a **temporal firewall**: `candidate.created_date < subject.created_date`; any cited resolution available before `subject.created_date`; subject, its split children, and known duplicates excluded; eval runs pin a retrieval snapshot. Tests **fail** if a target/post-outcome field enters a prompt, embedding, retrieval feature, or model input. Train/calibration/test and the retrieval index are partitioned **by time** (replacing the current hash split).
+
+**Alternatives.**
+- *Keep passing the canonical row, rely on discipline.* Rejected: leakage is silent and the headline claim is indefensible if a reviewer finds a future/self neighbor.
+- *Drop `complaint_type` entirely as an input.* Rejected: the declared task legitimately pre-fills routing from an assigned problem code; the fix is to *type and firewall* fields, not ban the useful one — but its near-determinism is disclosed ([README](README.md#whats-real-vs-simulated-read-this-honestly)), and the agent is justified on the **low-confidence tail**, not on this easy mapping.
+
+**Consequences.**
+- `+` Leakage becomes a build failure, not a discovered embarrassment; the agent-vs-baseline number is trustworthy.
+- `+` Forces an honest separation of "what the model sees" from "what we score against."
+- `−` Real engineering before Phase 3: a feature view, as-of retrieval filters, a temporal split (the current hash split in `eval/classify_eval.py` must change), and adversarial leakage tests.
+- `−` Temporal retrieval shrinks the candidate pool for the earliest tickets (cold start) — accepted; report coverage.
