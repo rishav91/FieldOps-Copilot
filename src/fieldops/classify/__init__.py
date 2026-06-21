@@ -5,6 +5,7 @@ and the confidence gate. Sub-phase 2.1 lands the agency taxonomy.
 """
 from .cascade import classify_cascade
 from .cheap import classify_cheap, vote
+from .gate import GateDecision, decide_gate
 from .llm_classify import classify_llm
 from .multilabel import MultiAgency, detect_multi_agency
 from .taxonomy import (
@@ -29,4 +30,6 @@ __all__ = [
     "classify_cascade",
     "detect_multi_agency",
     "MultiAgency",
+    "decide_gate",
+    "GateDecision",
 ]
