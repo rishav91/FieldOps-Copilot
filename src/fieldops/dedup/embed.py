@@ -43,8 +43,14 @@ def embed_missing(
     client: LLMClient | None = None,
     *,
     limit: int | None = None,
+    batch_size: int = 128,
 ) -> int:
-    """Embed all tickets that don't yet have an embedding. Returns the count."""
+    """Embed all tickets lacking a vector, batching the API calls. Returns count.
+
+    Texts are redacted (FR-10.1) before the batched external call; one API
+    request per `batch_size` tickets keeps a few-thousand backfill cheap and
+    avoids rate-limit storms (NFR-5.5).
+    """
     client = client or get_llm(Tier.EMBED)
     stmt = (
         select(Ticket)
@@ -54,6 +60,15 @@ def embed_missing(
     if limit is not None:
         stmt = stmt.limit(limit)
     tickets = session.scalars(stmt).all()
-    for ticket in tickets:
-        embed_ticket(session, ticket, client)
-    return len(tickets)
+
+    total = 0
+    for start in range(0, len(tickets), batch_size):
+        chunk = tickets[start : start + batch_size]
+        texts = [redact(ticket_text(t)) or "" for t in chunk]
+        with span("dedup.embed_batch", n=len(chunk)):
+            vectors = client.embed(texts)
+        for ticket, vector in zip(chunk, vectors):
+            session.add(Embedding(ticket_id=ticket.id, vector=vector, model=client.model))
+        session.flush()
+        total += len(chunk)
+    return total
