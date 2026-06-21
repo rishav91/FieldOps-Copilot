@@ -1,16 +1,15 @@
-"""Grok (xAI) binding (ADR-003) — the cheap/high-volume classifier tier.
+"""Groq binding (ADR-003) — the cheap/high-volume classifier tier.
 
-xAI is OpenAI-compatible, so this reuses the OpenAI chat surface with a
-different base URL. Embeddings stay on OpenAI (ADR-003), so `embed` is not
-provided here.
+Groq is OpenAI-compatible, so this reuses the OpenAI chat surface with Groq's
+base URL. Embeddings stay on OpenAI (ADR-003), so `embed` is not provided here.
 """
 from __future__ import annotations
 
 from .openai_client import OpenAIClient
 
 
-class GrokClient(OpenAIClient):
-    provider = "grok"
+class GroqClient(OpenAIClient):
+    provider = "groq"
 
     def __init__(self, api_key: str, model: str, base_url: str) -> None:
         self._base_url = base_url

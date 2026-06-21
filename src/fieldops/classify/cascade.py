@@ -1,6 +1,6 @@
 """The classification cascade (sub-phase 2.3, AI-ARCHITECTURE §3).
 
-cheap kNN → (if not confident) Grok → (if still not confident) OpenAI. Only the
+cheap kNN → (if not confident) Groq → (if still not confident) OpenAI. Only the
 residual reaches an expensive model — the cost-control funnel. Degrades
 gracefully: if a tier's client is unavailable (e.g. no key), it's skipped, and
 the best prediction so far is returned.
@@ -34,11 +34,11 @@ def classify_cascade(
     session: Session,
     ticket: Ticket,
     *,
-    grok: LLMClient | None | object = _UNSET,
+    groq: LLMClient | None | object = _UNSET,
     openai: LLMClient | None | object = _UNSET,
     cheap_min: float | None = None,
 ) -> Prediction:
-    """Run the cheap→Grok→OpenAI cascade; return the chosen prediction."""
+    """Run the cheap→Groq→OpenAI cascade; return the chosen prediction."""
     s = get_settings()
     cheap_min = s.cascade_cheap_min_confidence if cheap_min is None else cheap_min
 
@@ -48,9 +48,9 @@ def classify_cascade(
             sp["chosen"] = cheap.tier
             return cheap
 
-        grok_client = _maybe_get(Tier.CHEAP) if grok is _UNSET else grok
-        if grok_client is not None:
-            g = classify_llm(ticket, grok_client, tier_name="grok")
+        groq_client = _maybe_get(Tier.CHEAP) if groq is _UNSET else groq
+        if groq_client is not None:
+            g = classify_llm(ticket, groq_client, tier_name="groq")
             if g.agency and g.confidence >= cheap_min:
                 sp["chosen"] = g.tier
                 return g

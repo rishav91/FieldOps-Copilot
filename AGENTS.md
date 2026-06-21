@@ -32,7 +32,7 @@ The [docs/](docs/) suite is the single source of truth. Diagram sources: the two
 - **One agent loop, at intake triage only.** Resist adding agents elsewhere ([ADR-001](docs/ADRs.md#adr-001), [ADR-008](docs/ADRs.md#adr-008)).
 - **No side-effecting tool in the agent's menu.** The agent reasons; deterministic code + the human gate act.
 - **Honesty about what's simulated.** Linear is a simulated sink; 311 labels are reused as ground truth; any amplified ambiguous data is disclosed. Never fabricate a city integration. See [README §what's real vs simulated](docs/README.md#whats-real-vs-simulated-read-this-honestly).
-- **Standing guardrails are P0.** Redact PII before any external (OpenAI/Grok) LLM call; constrain agency to a valid enum and bound agent `split` fan-out; enforce (don't just configure) the spend ceiling. See [AI-ARCHITECTURE §6](docs/AI-ARCHITECTURE.md#6-safety-guardrails--red-team) and [REQUIREMENTS FR-10](docs/REQUIREMENTS.md#fr-10--guardrails).
+- **Standing guardrails are P0.** Redact PII before any external (OpenAI/Groq) LLM call; constrain agency to a valid enum and bound agent `split` fan-out; enforce (don't just configure) the spend ceiling. See [AI-ARCHITECTURE §6](docs/AI-ARCHITECTURE.md#6-safety-guardrails--red-team) and [REQUIREMENTS FR-10](docs/REQUIREMENTS.md#fr-10--guardrails).
 - **Claims need intervals.** The agent-beats-baseline result ships only with stated `n` and a 95% CI whose lower bound on (agent − Baseline B) > 0. See [EVAL-SPEC §5](docs/EVAL-SPEC.md#5-agent-path-eval--the-headline).
 
 ## LLM providers
@@ -40,7 +40,7 @@ The [docs/](docs/) suite is the single source of truth. Diagram sources: the two
 Use a **provider-agnostic `LLMClient` interface**. Default binding (see [ADR-003](docs/ADRs.md#adr-003)):
 
 - **OpenAI** (GPT-4-class) — agent, drafting, LLM-judge; `text-embedding-3` for embeddings.
-- **Grok (xAI)** — the cheap/high-volume classifier tier; prefer it for free/cheaper inferencing wherever quality permits.
+- **Groq (groq.com)** — the cheap/high-volume classifier tier; prefer it for free/cheaper inferencing wherever quality permits.
 
 **Do not use Codex/Anthropic models** in this project.
 

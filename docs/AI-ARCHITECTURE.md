@@ -28,11 +28,11 @@ All LLM calls go through one `LLMClient` interface (`complete`, `tool_call`, `em
 | Tier | Model (default binding) | Why |
 |------|-------------------------|-----|
 | Embeddings | **OpenAI `text-embedding-3`** | dedup + retrieval |
-| Cheap classifier fallback | **Grok (xAI)** | free/low-cost, high throughput on the bulk the classical tier wasn't sure about — the "cheap wherever possible" tier |
+| Cheap classifier fallback | **Groq (groq.com)** | free/low-cost, high throughput on the bulk the classical tier wasn't sure about — the "cheap wherever possible" tier |
 | Agent + drafting | **OpenAI (GPT-4-class)** | tool-use + reasoning quality where it matters |
-| LLM-judge (eval) | **OpenAI** (different prompt/run); **Grok** as a cost-saving option | scoring generative outputs |
+| LLM-judge (eval) | **OpenAI** (different prompt/run); **Groq** as a cost-saving option | scoring generative outputs |
 
-Azure OpenAI is a documented enterprise alternate behind the same interface. *Assumption: OpenAI primary, Grok for the cheap/high-volume tier; swap is config-only.*
+Azure OpenAI is a documented enterprise alternate behind the same interface. *Assumption: OpenAI primary, Groq for the cheap/high-volume tier; swap is config-only.*
 
 ## 3. The classification cascade (funnel)
 
@@ -44,7 +44,7 @@ ALL tickets
   ▼
   ├── confident + single agency ─────────────▶ FAST PATH (no further LLM)
   └── uncertain
-        │  Grok classify + calibrate
+        │  Groq classify + calibrate
         ▼
         ├── now confident, single agency ────▶ FAST PATH
         └── still low-conf / multi-label / multi-agency
@@ -117,7 +117,7 @@ Metrics: routing/split **correctness**, **turn-count distribution**, **give-up r
 Standing guardrails (always-on, [FR-10](REQUIREMENTS.md#fr-10--guardrails)) — distinct from the red-team study that *probes* them.
 
 **Input guardrails (before any external LLM call):**
-- **PII redaction ([FR-10.1](REQUIREMENTS.md#fr-10--guardrails)).** 311 free text carries addresses, sometimes names/phone numbers. It is detected and redacted **before** it reaches OpenAI/Grok or any trace/log — no raw PII leaves the boundary ([NFR-8.4](REQUIREMENTS.md#nfr-8--privacy--fairness), [OBSERVABILITY §8](OBSERVABILITY.md#8-logging-retention--data-protection)). This is a hard requirement given two third-party providers.
+- **PII redaction ([FR-10.1](REQUIREMENTS.md#fr-10--guardrails)).** 311 free text carries addresses, sometimes names/phone numbers. It is detected and redacted **before** it reaches OpenAI/Groq or any trace/log — no raw PII leaves the boundary ([NFR-8.4](REQUIREMENTS.md#nfr-8--privacy--fairness), [OBSERVABILITY §8](OBSERVABILITY.md#8-logging-retention--data-protection)). This is a hard requirement given two third-party providers.
 - **Instruction/data separation + injection defense ([FR-10.4](REQUIREMENTS.md#fr-10--guardrails)).** Ticket text and tool results are *data*, never instructions: delimited/spotlighted in the prompt, with injection heuristics flagging "ignore previous instructions"-style payloads. The system prompt states the separation explicitly.
 
 **Output guardrails (before any value is used):**

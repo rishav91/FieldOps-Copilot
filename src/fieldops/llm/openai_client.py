@@ -1,6 +1,6 @@
 """OpenAI binding (ADR-003) — the quality-critical tiers + embeddings.
 
-Also serves as the OpenAI-compatible base for Grok (xAI), which exposes the same
+Also serves as the OpenAI-compatible base for Groq, which exposes the same
 chat-completions surface. The `openai` SDK is imported lazily so the package
 imports cleanly without keys (Phase-0 stubs run offline).
 """

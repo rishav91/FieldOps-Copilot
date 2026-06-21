@@ -86,26 +86,26 @@ def test_cheap_confident_does_not_call_llm(db_ready):  # noqa: ARG001
 
     fake_embed = _FakeEmbedder(get_settings().embedding_dim)
     run = uuid.uuid4().hex[:8]
-    grok = _FakeLLM('{"agency": "DOT", "confidence": 0.99}')
+    groq = _FakeLLM('{"agency": "DOT", "confidence": 0.99}')
 
     with session_scope() as session:
         text = f"water main break {run}"
         _seed(session, [(text, "DEP"), (text, "DEP"), (text, "DEP")], fake_embed)
         query = _seed(session, [(text, "DEP")], fake_embed)
 
-        pred = classify_cascade(session, session.get(Ticket, query.id), grok=grok, openai=None)
+        pred = classify_cascade(session, session.get(Ticket, query.id), groq=groq, openai=None)
         assert pred.agency == "DEP" and pred.tier == "cheap-knn"
-        assert grok.calls == []  # cheap was confident -> LLM never called
+        assert groq.calls == []  # cheap was confident -> LLM never called
 
 
-def test_low_confidence_escalates_to_grok(db_ready):  # noqa: ARG001
+def test_low_confidence_escalates_to_groq(db_ready):  # noqa: ARG001
     from fieldops.classify import classify_cascade
     from fieldops.db import session_scope
     from fieldops.models import Ticket
 
     fake_embed = _FakeEmbedder(get_settings().embedding_dim)
     run = uuid.uuid4().hex[:8]
-    grok = _FakeLLM('{"agency": "DEP", "confidence": 0.95}')
+    groq = _FakeLLM('{"agency": "DEP", "confidence": 0.95}')
 
     with session_scope() as session:
         # Same text, three different agencies -> a 1/3 vote tie -> escalate.
@@ -113,6 +113,6 @@ def test_low_confidence_escalates_to_grok(db_ready):  # noqa: ARG001
         _seed(session, [(text, "DEP"), (text, "DOT"), (text, "DPR")], fake_embed)
         query = _seed(session, [(text, "DEP")], fake_embed)
 
-        pred = classify_cascade(session, session.get(Ticket, query.id), grok=grok, openai=None)
-        assert pred.tier == "grok" and pred.agency == "DEP"
-        assert len(grok.calls) == 1
+        pred = classify_cascade(session, session.get(Ticket, query.id), groq=groq, openai=None)
+        assert pred.tier == "groq" and pred.agency == "DEP"
+        assert len(groq.calls) == 1

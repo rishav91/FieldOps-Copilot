@@ -47,7 +47,7 @@ def _cmd_llm_health(_: argparse.Namespace) -> int:
     s = get_settings()
     checks = [
         ("OpenAI (agent)", Tier.AGENT, bool(s.openai_api_key)),
-        ("Grok (cheap)", Tier.CHEAP, bool(s.xai_api_key)),
+        ("Groq (cheap)", Tier.CHEAP, bool(s.groq_api_key)),
     ]
     rc = 0
     for label, tier, has_key in checks:

@@ -8,7 +8,7 @@ from dataclasses import dataclass
 class Prediction:
     """A routing prediction with a *raw* (uncalibrated) confidence.
 
-    `tier` records which cascade stage produced it (cheap-knn / grok / openai /
+    `tier` records which cascade stage produced it (cheap-knn / groq / openai /
     prior); calibration (2.5) maps `confidence` → a calibrated probability.
     """
 

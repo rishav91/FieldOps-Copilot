@@ -1,6 +1,6 @@
 """Classification + routing (FR-3, FR-4).
 
-Phase 2 builds the cascade (cheap → Grok → OpenAI) with calibrated confidence
+Phase 2 builds the cascade (cheap → Groq → OpenAI) with calibrated confidence
 and the confidence gate. Sub-phase 2.1 lands the agency taxonomy.
 """
 from .cascade import classify_cascade

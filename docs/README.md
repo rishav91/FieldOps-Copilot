@@ -29,7 +29,7 @@ Every "should we add AI here?" is settled by this rule. It is the reason the wor
 - **Language/API:** Python · FastAPI.
 - **Ingest:** NYC 311 Socrata SODA API (app-token auth), daily delta via cron.
 - **Storage:** Postgres + **pgvector** (single store for MVP — canonical tickets, embeddings, traces). See [ADR-010](ADRs.md#adr-010).
-- **LLM:** **provider-agnostic interface**; default **OpenAI** (GPT-4-class) for the agent, drafting, and LLM-judge, with **Grok (xAI)** on the cheap/high-volume classifier tier for free/low-cost inferencing wherever quality permits. Embeddings via OpenAI; Azure OpenAI is a swappable enterprise alternate. See [ADR-003](ADRs.md#adr-003). *(Assumption: OpenAI primary + Grok cheap tier; swap is config-only — revisit if a deployment target dictates Azure.)*
+- **LLM:** **provider-agnostic interface**; default **OpenAI** (GPT-4-class) for the agent, drafting, and LLM-judge, with **Groq (groq.com)** on the cheap/high-volume classifier tier for free/low-cost inferencing wherever quality permits. Embeddings via OpenAI; Azure OpenAI is a swappable enterprise alternate. See [ADR-003](ADRs.md#adr-003). *(Assumption: OpenAI primary + Groq cheap tier; swap is config-only — revisit if a deployment target dictates Azure.)*
 - **Agent runtime:** **LangGraph** for the single triage loop (explicit state graph, turn caps, per-node tracing). See [ADR-004](ADRs.md#adr-004).
 - **System of record:** **Linear** GraphQL API + OAuth — a *simulated sink* (see [ADR-005](ADRs.md#adr-005)).
 - **Observability:** LangSmith or OpenTelemetry tracing + a Streamlit eval dashboard.

@@ -4,9 +4,9 @@
 
 **Goal (from [ROADMAP](../ROADMAP.md#phase-2)):** route the easy majority with a confidence score that *means something*, then decide at the **GO/NO-GO gate** whether a real ambiguous population justifies the agent.
 
-**Achieves:** the cascade classifier (cheap → Grok → OpenAI) producing an agency label + **calibrated** confidence; multi-label/agency detection; the confidence gate (fast vs. agent); discriminative eval vs. 311 labels; and the gate decision. Closes **FR-3**, **FR-3.4**, **FR-4**; stands up **FR-8.1** + **FR-8.11**; enforces **FR-10.3** (enum-constrained output) and **FR-10.5** (malformed-output fallback); meets **NFR-4.1** (ECE ≤ 0.05) and **NFR-4.2** (macro-F1 ≥ 0.85).
+**Achieves:** the cascade classifier (cheap → Groq → OpenAI) producing an agency label + **calibrated** confidence; multi-label/agency detection; the confidence gate (fast vs. agent); discriminative eval vs. 311 labels; and the gate decision. Closes **FR-3**, **FR-3.4**, **FR-4**; stands up **FR-8.1** + **FR-8.11**; enforces **FR-10.3** (enum-constrained output) and **FR-10.5** (malformed-output fallback); meets **NFR-4.1** (ECE ≤ 0.05) and **NFR-4.2** (macro-F1 ≥ 0.85).
 
-**Depends on:** Phase 1 (canonical tickets + embeddings + the PII guardrail). **Requires `OPENAI_API_KEY`** in `.env` for the live cheap-tier embeddings, the OpenAI cascade fallback, and the gate run. The cascade's cheap LLM tier uses Grok (`XAI_API_KEY`, optional — falls back to OpenAI if unset).
+**Depends on:** Phase 1 (canonical tickets + embeddings + the PII guardrail). **Requires `OPENAI_API_KEY`** in `.env` for the live cheap-tier embeddings, the OpenAI cascade fallback, and the gate run. The cascade's cheap LLM tier uses Groq (`GROQ_API_KEY`, optional — falls back to OpenAI if unset).
 
 **Bounded-sample decision:** the gate run uses a **~3,000-record** bounded Brooklyn backfill (per your call) — enough to estimate the ambiguous tail without the full-year cost. Scale up later if the gate is marginal.
 
@@ -18,7 +18,7 @@
 |---|-----------|----------|-----------|-----------|--------|
 | 2.1 | Agency taxonomy | Valid agency enum + `complaint_type`→agency ground-truth mapping from 311; the enum that constrains LLM output (FR-10.3) | `classify/taxonomy.py` | enum + mapping; unit tests | `feat(classify): agency taxonomy + 311 label mapping` |
 | 2.2 | Cheap tier | Embedding-kNN classifier over existing vectors → agency + raw confidence (vote margin); no LLM | `classify/cheap.py` | kNN predicts + scores; offline tests w/ fixtures | `feat(classify): cheap embedding-kNN tier` |
-| 2.3 | LLM cascade | Low-confidence → Grok classify (enum-constrained, PII-redacted) → OpenAI fallback; malformed-output → low-confidence (FR-10.5) | `classify/cascade.py`, `classify/llm_classify.py` | injected fake LLM tests; enum enforced | `feat(classify): Grok→OpenAI cascade with enum-constrained output` |
+| 2.3 | LLM cascade | Low-confidence → Groq classify (enum-constrained, PII-redacted) → OpenAI fallback; malformed-output → low-confidence (FR-10.5) | `classify/cascade.py`, `classify/llm_classify.py` | injected fake LLM tests; enum enforced | `feat(classify): Groq→OpenAI cascade with enum-constrained output` |
 | 2.4 | Multi-agency detect | Flag tickets spanning ≥2 agencies (reuse 1.7 multi-issue + taxonomy) for the gate | `classify/multilabel.py` | offline tests on known cases | `feat(classify): multi-label / multi-agency detection` |
 | 2.5 | Calibration | Platt/isotonic fit on a held-out split: raw conf → calibrated prob; reliability curve + ECE (FR-3.4) | `classify/calibration.py`, `eval/calibration.py` | ECE computed; offline tests on synthetic scores | `feat(classify): confidence calibration + reliability curve` |
 | 2.6 | Confidence gate | Threshold on calibrated conf + multi-agency flag → `path=fast\|agent`; `gate_version`; config-tunable (FR-4) | `classify/gate.py` | routes per threshold; offline tests | `feat(routing): calibrated confidence gate` |

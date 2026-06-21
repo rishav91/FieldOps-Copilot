@@ -7,7 +7,7 @@ MVP-first, **depth before breadth**. The order is deliberately chosen so the dif
 ## Phase 0
 **Walking skeleton.**
 **Goal:** thinnest end-to-end slice that proves the architecture wiring.
-**Ships:** repo scaffold; FastAPI app; Postgres + pgvector up; `LLMClient` interface ([ADR-003](ADRs.md#adr-003)) with the OpenAI binding (+ Grok cheap tier); a single ticket flows ingest → store → (stub) classify → (stub) draft → console. Tracing skeleton.
+**Ships:** repo scaffold; FastAPI app; Postgres + pgvector up; `LLMClient` interface ([ADR-003](ADRs.md#adr-003)) with the OpenAI binding (+ Groq cheap tier); a single ticket flows ingest → store → (stub) classify → (stub) draft → console. Tracing skeleton.
 **Unlocks:** every later phase plugs into a working spine.
 
 ## Phase 1
@@ -19,7 +19,7 @@ MVP-first, **depth before breadth**. The order is deliberately chosen so the dif
 ## Phase 2
 **Cascade classifier + routing + calibrated confidence.**
 **Goal:** route the easy majority with a confidence score that *means something*.
-**Ships:** FR-3 (cheap → Grok → OpenAI cascade, multi-label/agency detection), FR-3.4 calibration (Platt/isotonic + reliability curve), FR-4 confidence gate. Discriminative eval (FR-8.1) against 311 labels; ECE meets [NFR-4.1](REQUIREMENTS.md#nfr-4--correctness--calibration).
+**Ships:** FR-3 (cheap → Groq → OpenAI cascade, multi-label/agency detection), FR-3.4 calibration (Platt/isotonic + reliability curve), FR-4 confidence gate. Discriminative eval (FR-8.1) against 311 labels; ECE meets [NFR-4.1](REQUIREMENTS.md#nfr-4--correctness--calibration).
 
 > ### GO / NO-GO GATE
 > **Confirm a real population of genuinely ambiguous / multi-agency requests exists** (from Phase 1 profiling + the calibrated gate's tail size).

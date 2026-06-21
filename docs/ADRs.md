@@ -8,7 +8,7 @@ Each ADR: **context → decision → alternatives → consequences**. Alternativ
 |----|-------|--------|
 | [ADR-001](#adr-001) | Deterministic by default; exactly one agent loop | Accepted |
 | [ADR-002](#adr-002) | A calibrated confidence gate routes only the tail to the agent | Accepted |
-| [ADR-003](#adr-003) | Provider-agnostic LLM interface; OpenAI primary + Grok cheap tier | Accepted |
+| [ADR-003](#adr-003) | Provider-agnostic LLM interface; OpenAI primary + Groq cheap tier | Accepted |
 | [ADR-004](#adr-004) | LangGraph for the single triage loop | Accepted |
 | [ADR-005](#adr-005) | Linear as a *simulated* system of record | Accepted |
 | [ADR-006](#adr-006) | 311 labels as evaluation ground truth | Accepted |
@@ -55,11 +55,11 @@ Each ADR: **context → decision → alternatives → consequences**. Alternativ
 - `−` Threshold choice is a real tuning task with a precision/recall trade-off (too low → agent floods; too high → mis-routes slip to fast path).
 
 ## ADR-003
-### Provider-agnostic LLM interface; OpenAI primary + Grok cheap tier
+### Provider-agnostic LLM interface; OpenAI primary + Groq cheap tier
 
 **Context.** For a portfolio artifact, single-vendor lock-in is both a risk and a portability story, and **cost on the high-volume tiers matters**. We want quality where it counts (the agent, drafting, the judge) and the cheapest credible option on the bulk classifier tier.
 
-**Decision.** All LLM access goes through one `LLMClient` interface (`complete`, `tool_call`, `embed`). Default binding: **OpenAI** (GPT-4-class for the agent, drafting, and judge; `text-embedding-3` for embeddings), with **Grok (xAI)** on the cheap/high-volume classifier fallback tier for free/low-cost inferencing wherever quality permits. Azure OpenAI is a swappable enterprise alternate. *Assumption: OpenAI primary + Grok cheap tier; revisit if a deployment dictates Azure for compliance/residency.*
+**Decision.** All LLM access goes through one `LLMClient` interface (`complete`, `tool_call`, `embed`). Default binding: **OpenAI** (GPT-4-class for the agent, drafting, and judge; `text-embedding-3` for embeddings), with **Groq (groq.com)** on the cheap/high-volume classifier fallback tier for free/low-cost inferencing wherever quality permits. Azure OpenAI is a swappable enterprise alternate. *Assumption: OpenAI primary + Groq cheap tier; revisit if a deployment dictates Azure for compliance/residency.*
 
 **Alternatives.**
 - *Hard-code a single vendor for everything.* Rejected: lock-in, weaker failover, and no cheap-tier cost lever on the bulk traffic.
@@ -67,9 +67,9 @@ Each ADR: **context → decision → alternatives → consequences**. Alternativ
 
 **Consequences.**
 - `+` Provider failover is a real degradation path, not a slide.
-- `+` Tiering maps cleanly to cost: Grok absorbs high-volume classification cheaply; OpenAI carries the quality-critical reasoning.
+- `+` Tiering maps cleanly to cost: Groq absorbs high-volume classification cheaply; OpenAI carries the quality-critical reasoning.
 - `−` Two providers to key, monitor, and rate-limit; the abstraction must design to their common subset (can't lean on provider-specific features).
-- `−` Evals must be re-run per tier if a default model changes — behavior isn't portable even though the interface is; Grok and OpenAI must each be eval'd on the tier they serve.
+- `−` Evals must be re-run per tier if a default model changes — behavior isn't portable even though the interface is; Groq and OpenAI must each be eval'd on the tier they serve.
 
 ## ADR-004
 ### LangGraph for the single triage loop

@@ -32,7 +32,7 @@ trace[ticket_id]
 ├─ ingest.normalize
 ├─ dedup.embed · dedup.ann_query        (attrs: neighbors, top_sim)
 ├─ classify.cheap_tier                  (attrs: label, raw_conf, resolved?)
-├─ classify.grok_fallback               (attrs: label, raw_conf)         [conditional]
+├─ classify.groq_fallback               (attrs: label, raw_conf)         [conditional]
 ├─ calibrate                            (attrs: calibrated_conf)
 ├─ gate.decide                          (attrs: path=fast|agent, gate_version)
 ├─ agent.turn[n]  ──per turn──▶ tool.call (attrs: tool, args_valid, latency, tokens, cost)
@@ -75,7 +75,7 @@ Calibration is fit once but the world moves. Monitored continuously, recalibrate
 
 - **Calibration drift** — rolling ECE on the stream of decisions that later get a 311 ground-truth label; when ECE crosses [NFR-6.4](REQUIREMENTS.md#nfr-6--observability), auto-flag for re-fit ([ADR-007](ADRs.md#adr-007) consequence).
 - **Input distribution drift** — KL-divergence / PSI on complaint-type mix and descriptor-embedding centroids vs. the training window; catches new complaint patterns the cascade hasn't seen.
-- **Cheap-tier false-confidence** — the classical/Grok tier can resolve *high-confidence and skip the gate*, so its drift is the most dangerous. Tracked separately ([EVAL-SPEC §3](EVAL-SPEC.md#3-discriminative-eval)).
+- **Cheap-tier false-confidence** — the classical/Groq tier can resolve *high-confidence and skip the gate*, so its drift is the most dangerous. Tracked separately ([EVAL-SPEC §3](EVAL-SPEC.md#3-discriminative-eval)).
 - **Agent behavior drift** — turn-count distribution and give-up rate over time; a creeping rise signals prompt/tool/model-version regression.
 
 Cadence: rolling daily windows; alerts as in §4. Drift is a *monitoring* concern here; the offline re-fit + re-eval protocol lives in [EVAL-SPEC](EVAL-SPEC.md).

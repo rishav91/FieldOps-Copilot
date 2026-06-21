@@ -27,7 +27,7 @@ def test_cheap_false_confidence_flags_wrong_high_conf():
         ("cheap-knn", 0.9, True),   # high-conf, correct
         ("cheap-knn", 0.9, False),  # high-conf, WRONG -> counts
         ("cheap-knn", 0.4, False),  # low-conf -> ignored (would hit the gate)
-        ("grok", 0.9, False),       # not cheap tier -> ignored
+        ("groq", 0.9, False),       # not cheap tier -> ignored
     ]
     rate, n = cheap_tier_false_confidence(records, min_confidence=0.7)
     assert n == 2 and rate == pytest.approx(0.5)

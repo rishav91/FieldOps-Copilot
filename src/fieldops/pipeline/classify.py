@@ -1,6 +1,6 @@
 """Classifier + routing — STUB (Phase 0).
 
-Placeholder for the real cascade (FR-3): classical/cheap -> Grok -> OpenAI with
+Placeholder for the real cascade (FR-3): classical/cheap -> Groq -> OpenAI with
 *calibrated* confidence (Phase 2). The stub reuses the existing 311 `agency`
 label as a stand-in prediction (ADR-006) with no calibrated confidence, and
 records a `routing_decision`. It makes NO LLM call so the skeleton runs offline.

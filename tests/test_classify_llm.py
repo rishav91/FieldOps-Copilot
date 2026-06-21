@@ -30,18 +30,18 @@ _TICKET = SimpleNamespace(complaint_type="Water System", descriptor="hydrant lea
 
 
 def test_valid_json_yields_prediction():
-    pred = classify_llm(_TICKET, _FakeLLM('{"agency": "DEP", "confidence": 0.9}'), tier_name="grok")
+    pred = classify_llm(_TICKET, _FakeLLM('{"agency": "DEP", "confidence": 0.9}'), tier_name="groq")
     assert pred.agency == "DEP"
     assert pred.confidence == 0.9
-    assert pred.tier == "grok"
+    assert pred.tier == "groq"
 
 
 def test_out_of_enum_agency_is_malformed_low_confidence():
     fake = _FakeLLM('{"agency": "FBI", "confidence": 0.99}')
-    pred = classify_llm(_TICKET, fake, tier_name="grok")
+    pred = classify_llm(_TICKET, fake, tier_name="groq")
     assert pred.agency is None
     assert pred.confidence == 0.0
-    assert pred.tier == "grok-malformed"
+    assert pred.tier == "groq-malformed"
 
 
 def test_unparseable_output_is_safe():
@@ -50,8 +50,8 @@ def test_unparseable_output_is_safe():
 
 
 def test_provider_exception_is_caught():
-    pred = classify_llm(_TICKET, _FakeLLM(raise_exc=True), tier_name="grok")
-    assert pred.agency is None and pred.tier == "grok-error"
+    pred = classify_llm(_TICKET, _FakeLLM(raise_exc=True), tier_name="groq")
+    assert pred.agency is None and pred.tier == "groq-error"
 
 
 def test_pii_is_redacted_before_send():
@@ -59,7 +59,7 @@ def test_pii_is_redacted_before_send():
     ticket = SimpleNamespace(
         complaint_type="Plumbing", descriptor="call 718-555-0142 at 50 Main Street"
     )
-    classify_llm(ticket, fake, tier_name="grok")
+    classify_llm(ticket, fake, tier_name="groq")
     sent = fake.calls[0][1].content  # user message
     assert "718-555-0142" not in sent and "[REDACTED_PHONE]" in sent
     assert "Main Street" not in sent and "[REDACTED_ADDRESS]" in sent
