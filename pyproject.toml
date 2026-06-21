@@ -38,6 +38,12 @@ fieldops = ["data/*.json"]
 line-length = 100
 src = ["src", "tests"]
 
+[tool.ruff.lint]
+# One fast linter (ruff). `E501` enforces the 100-char budget on top of ruff's
+# default Pyflakes/pycodestyle set. Deeper type-level checks are a type
+# checker's job (mypy, planned ~Phase 2) — not a second linter.
+extend-select = ["E501"]
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

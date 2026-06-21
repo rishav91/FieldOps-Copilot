@@ -65,7 +65,9 @@ class Raw311Record(Base):
 
     unique_key: Mapped[str] = mapped_column(String, primary_key=True)
     payload: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    ingested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ingested_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
 
 class Ticket(Base):
