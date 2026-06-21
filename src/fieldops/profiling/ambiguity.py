@@ -43,9 +43,16 @@ def _matches(keyword: str, low: str) -> bool:
     return re.search(rf"\b{re.escape(keyword)}", low) is not None
 
 
-def _issue_categories(text: str) -> set[str]:
+def issue_categories(text: str | None) -> set[str]:
+    """Distinct issue categories a descriptor touches (e.g. {water, structural})."""
+    if not text:
+        return set()
     low = text.lower()
     return {cat for cat, kws in _ISSUE_KEYWORDS.items() if any(_matches(k, low) for k in kws)}
+
+
+def _issue_categories(text: str) -> set[str]:
+    return issue_categories(text)
 
 
 def is_thin_text(text: str | None, min_len: int = _THIN_TEXT_MIN) -> bool:
