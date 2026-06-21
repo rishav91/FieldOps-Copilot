@@ -1,6 +1,6 @@
 # Phase 2 — Cascade classifier + routing + calibrated confidence
 
-**Status:** ✅ shipped on `phase-2-cascade-routing` (2.1–2.8). Live gate run done; **GO/NO-GO decision in [phase-2-gate.md](phase-2-gate.md) — recommended GO, awaiting confirmation.** macro-F1 0.997, ECE 0.0008, cheap-tier false-confidence 0.0 on a 1,537-ticket held-out split.
+**Status:** ✅ shipped on `phase-2-cascade-routing` (2.1–2.8). Live gate run on a **~10k** Brooklyn sample; **GO/NO-GO decision in [phase-2-gate.md](phase-2-gate.md) — recommended GO, awaiting confirmation.** macro-F1 0.997, ECE 0.005, cheap-tier false-confidence 0.0 on a 2,004-ticket held-out split; **~10% agent tail (~1,000 real low-confidence tickets)** — the agent's primary population, no amplification needed.
 
 **Goal (from [ROADMAP](../ROADMAP.md#phase-2)):** route the easy majority with a confidence score that *means something*, then decide at the **GO/NO-GO gate** whether a real ambiguous population justifies the agent.
 
