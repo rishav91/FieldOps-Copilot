@@ -37,7 +37,16 @@ def session_scope() -> Iterator[Session]:
 
 
 def init_db() -> None:
-    """Create the pgvector extension and all tables. Idempotent."""
+    """Create the pgvector extension, all tables, and the ANN index. Idempotent."""
     with _engine.begin() as conn:
         conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
     Base.metadata.create_all(_engine)
+    # HNSW index for cosine ANN over embeddings (FR-2 dedup / find_similar_tickets).
+    # create_all can't express it, so add it explicitly after the table exists.
+    with _engine.begin() as conn:
+        conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS embedding_vector_hnsw "
+                "ON embedding USING hnsw (vector vector_cosine_ops)"
+            )
+        )
