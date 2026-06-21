@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     dedup_geo_meters: float = 150.0
     dedup_time_days: int = 7
 
+    # Classifier knobs (FR-3)
+    cheap_knn_k: int = 10  # neighbors for the cheap kNN tier
+
     # Pipeline knobs (gate / agent / spend) — see REQUIREMENTS FR-4, FR-5, FR-10
     gate_threshold: float = 0.75
     agent_turn_cap: int = 6
