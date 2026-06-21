@@ -33,7 +33,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-fieldops = ["data/*.json"]
+fieldops = ["data/*.json", "data/*.jsonl"]
 
 [tool.ruff]
 line-length = 100

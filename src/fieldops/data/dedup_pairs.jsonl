@@ -1,0 +1,10 @@
+{"text_a": "Water System: Hydrant leaking onto the street", "text_b": "Water System: Fire hydrant is leaking water all over road", "label": true, "ann1": true, "ann2": true}
+{"text_a": "Sewer: Sewage backing up into basement", "text_b": "Sewer: Basement flooding with sewage backup", "label": true, "ann1": true, "ann2": true}
+{"text_a": "Street Condition: Large pothole on the corner", "text_b": "Street Condition: Deep pothole at the intersection", "label": true, "ann1": true, "ann2": false}
+{"text_a": "Damaged Tree: Large branch fell and is blocking sidewalk", "text_b": "Damaged Tree: Fallen tree limb blocking the walkway", "label": true, "ann1": true, "ann2": true}
+{"text_a": "Noise - Residential: Loud music from upstairs apartment", "text_b": "Noise - Residential: Neighbor playing loud music late at night", "label": true, "ann1": false, "ann2": true}
+{"text_a": "Water System: Hydrant leaking onto the street", "text_b": "Street Light Condition: Street light flickering on and off", "label": false, "ann1": false, "ann2": false}
+{"text_a": "Sewer: Sewage backing up into basement", "text_b": "Damaged Tree: Tree roots cracking the sidewalk", "label": false, "ann1": false, "ann2": false}
+{"text_a": "Plumbing: No hot water in the building", "text_b": "Sidewalk Condition: Cracked and uneven sidewalk", "label": false, "ann1": false, "ann2": false}
+{"text_a": "Street Condition: Pothole near the school", "text_b": "Noise - Residential: Loud party next door", "label": false, "ann1": false, "ann2": false}
+{"text_a": "HEAT/HOT WATER: No heat in apartment all week", "text_b": "HEAT/HOT WATER: Building has had no heat for days", "label": true, "ann1": true, "ann2": true}
