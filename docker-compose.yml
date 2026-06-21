@@ -1,0 +1,22 @@
+# Postgres + pgvector — the single store for the MVP (ADR-010).
+# Demo-scale; one container is enough. `docker compose up -d` then `make init-db`.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: fieldops-db
+    environment:
+      POSTGRES_USER: fieldops
+      POSTGRES_PASSWORD: fieldops
+      POSTGRES_DB: fieldops
+    ports:
+      - "5432:5432"
+    volumes:
+      - fieldops_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fieldops -d fieldops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  fieldops_pgdata:
