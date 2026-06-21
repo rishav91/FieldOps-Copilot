@@ -32,7 +32,7 @@ Classification, routing, dedup, SLA. Scored against 311 labels / computed outcom
 
 - **Metrics:** precision / recall / **macro-F1** (routing target ≥ 0.85, [NFR-4.2](REQUIREMENTS.md#nfr-4--correctness--calibration)), per-class confusion, dedup precision ≥ 0.90.
 - **Calibration:** reliability curve + **ECE ≤ 0.05** ([NFR-4.1](REQUIREMENTS.md#nfr-4--correctness--calibration)); Platt/isotonic fit on the calibration split, evaluated on the frozen test split.
-- **Cheap-tier false-confidence eval ([FR-8.11](REQUIREMENTS.md#fr-8--evaluation--observability)).** The classical/Grok tier can resolve *high-confidence and skip the gate*, so its calibration is the most safety-critical. Measured separately: among cheap-tier high-confidence resolutions, what fraction were actually wrong? This bounds the silent mis-route rate — the failure the gate can't catch.
+- **Cheap-tier false-confidence eval ([FR-8.11](REQUIREMENTS.md#fr-8--evaluation--observability)).** The classical/Groq tier can resolve *high-confidence and skip the gate*, so its calibration is the most safety-critical. Measured separately: among cheap-tier high-confidence resolutions, what fraction were actually wrong? This bounds the silent mis-route rate — the failure the gate can't catch.
 - **Gate operating point.** The threshold is an *eval output*, not a guess: sweep it, plot the precision (correct fast-path routes) vs. agent-load trade-off, pick the point where fast-path error ≤ tolerated and report it.
 
 ## 4. Generative eval
@@ -80,7 +80,7 @@ Per [AI-ARCHITECTURE §7](AI-ARCHITECTURE.md#7-fairness--governance): Census/ACS
 
 ## 10. Provider-swap regression harness
 
-[ADR-003](ADRs.md#adr-003) makes providers swappable; [FR-8.15](REQUIREMENTS.md#fr-8--evaluation--observability) makes that safe. A harness re-runs the per-tier evals across providers/versions (OpenAI vs Grok on the classifier tier; OpenAI model-version bumps on the agent) and reports the metric deltas, so a swap is a measured decision, not a leap. Model behavior isn't portable even though the interface is.
+[ADR-003](ADRs.md#adr-003) makes providers swappable; [FR-8.15](REQUIREMENTS.md#fr-8--evaluation--observability) makes that safe. A harness re-runs the per-tier evals across providers/versions (OpenAI vs Groq on the classifier tier; OpenAI model-version bumps on the agent) and reports the metric deltas, so a swap is a measured decision, not a leap. Model behavior isn't portable even though the interface is.
 
 ## 11. CI gates & reproducibility
 

@@ -3,7 +3,7 @@
 Call sites ask for a *tier* (what the work is), not a vendor. This is the single
 place the default binding lives, so swapping a provider is one edit here.
 
-    CHEAP  -> Grok (xAI)          high-volume classifier fallback
+    CHEAP  -> Groq                high-volume classifier fallback
     AGENT  -> OpenAI GPT-4-class  agent, drafting, judge
     EMBED  -> OpenAI embeddings   dedup + retrieval
 """
@@ -13,7 +13,7 @@ import enum
 
 from ..config import get_settings
 from .base import LLMClient
-from .grok_client import GrokClient
+from .groq_client import GroqClient
 from .openai_client import OpenAIClient
 
 
@@ -26,8 +26,8 @@ class Tier(str, enum.Enum):
 def get_llm(tier: Tier) -> LLMClient:
     s = get_settings()
     if tier is Tier.CHEAP:
-        return GrokClient(
-            api_key=s.xai_api_key or "", model=s.grok_cheap_model, base_url=s.xai_base_url
+        return GroqClient(
+            api_key=s.groq_api_key or "", model=s.groq_cheap_model, base_url=s.groq_base_url
         )
     if tier is Tier.AGENT:
         return OpenAIClient(api_key=s.openai_api_key or "", model=s.openai_agent_model)

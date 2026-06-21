@@ -10,7 +10,7 @@ AI triage + work-order automation over **NYC 311 service requests** — a portfo
 
 - FastAPI app + health endpoint
 - Postgres + pgvector store, schema faithful to [ARCHITECTURE §5](docs/ARCHITECTURE.md#5-data-model-folded-in)
-- Provider-agnostic `LLMClient` ([ADR-003](docs/ADRs.md#adr-003)) — OpenAI primary, Grok cheap tier
+- Provider-agnostic `LLMClient` ([ADR-003](docs/ADRs.md#adr-003)) — OpenAI primary, Groq cheap tier
 - Pipeline spine: `ingest → store → (stub) classify → (stub) draft → console`
 - Tracing skeleton: per-stage spans with `ticket_id` / `trace_id` correlation
 
@@ -40,7 +40,7 @@ src/fieldops/
   db.py            engine/session + init_db (pgvector extension + create_all)
   models.py        canonical tables: raw_311_record, ticket, embedding,
                    routing_decision, work_order  (ARCHITECTURE §5)
-  llm/             provider-agnostic client: base · openai · grok · factory
+  llm/             provider-agnostic client: base · openai · groq · factory
   pipeline/        ingest · classify (stub) · draft (stub) · runner (the spine)
   api/app.py       FastAPI app
   cli.py           `fieldops` entrypoint (init-db · demo · llm-health)

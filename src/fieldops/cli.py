@@ -47,7 +47,7 @@ def _cmd_llm_health(_: argparse.Namespace) -> int:
     s = get_settings()
     checks = [
         ("OpenAI (agent)", Tier.AGENT, bool(s.openai_api_key)),
-        ("Grok (cheap)", Tier.CHEAP, bool(s.xai_api_key)),
+        ("Groq (cheap)", Tier.CHEAP, bool(s.groq_api_key)),
     ]
     rc = 0
     for label, tier, has_key in checks:
@@ -105,6 +105,18 @@ def _cmd_dedup(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_classify_eval(args: argparse.Namespace) -> int:
+    import json
+
+    from .db import session_scope
+    from .eval.classify_eval import run_classification_eval
+
+    with session_scope() as session:
+        report = run_classification_eval(session, sample=args.max)
+    print(json.dumps(report.as_dict(), indent=2))
+    return 0
+
+
 def _cmd_profile_ambiguity(_: argparse.Namespace) -> int:
     import json
 
@@ -142,6 +154,10 @@ def main(argv: list[str] | None = None) -> int:
     p_dedup = sub.add_parser("dedup", help="link duplicates over embedded tickets")
     p_dedup.add_argument("--max", type=int, default=None)
     p_dedup.set_defaults(fn=_cmd_dedup)
+
+    p_ceval = sub.add_parser("classify-eval", help="discriminative eval: F1, ECE, gate split")
+    p_ceval.add_argument("--max", type=int, default=None)
+    p_ceval.set_defaults(fn=_cmd_classify_eval)
 
     p_prof = sub.add_parser("profile-ambiguity", help="profile the ambiguous population")
     p_prof.set_defaults(fn=_cmd_profile_ambiguity)

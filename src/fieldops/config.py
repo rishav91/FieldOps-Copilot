@@ -23,19 +23,24 @@ class Settings(BaseSettings):
     socrata_page_size: int = 1000
     socrata_timeout_s: float = 30.0
 
-    # LLM providers (ADR-003): OpenAI primary, Grok cheap tier
+    # LLM providers (ADR-003): OpenAI primary, Groq cheap tier
     openai_api_key: str | None = None
-    xai_api_key: str | None = None
+    groq_api_key: str | None = None
     openai_agent_model: str = "gpt-4o"
     openai_embed_model: str = "text-embedding-3-small"
-    grok_cheap_model: str = "grok-3-mini"
-    xai_base_url: str = "https://api.x.ai/v1"
+    groq_cheap_model: str = "llama-3.1-8b-instant"
+    groq_base_url: str = "https://api.groq.com/openai/v1"
     embedding_dim: int = 1536
 
     # Dedup knobs (FR-2) — geo/time window + cosine threshold
     dedup_cosine_threshold: float = 0.15  # max cosine distance to call a duplicate
     dedup_geo_meters: float = 150.0
     dedup_time_days: int = 7
+
+    # Classifier knobs (FR-3)
+    cheap_knn_k: int = 10  # neighbors for the cheap kNN tier
+    cheap_knn_max_distance: float = 0.30  # only count neighbors within this cosine distance
+    cascade_cheap_min_confidence: float = 0.7  # below this, escalate to an LLM tier
 
     # Pipeline knobs (gate / agent / spend) — see REQUIREMENTS FR-4, FR-5, FR-10
     gate_threshold: float = 0.75

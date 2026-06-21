@@ -26,7 +26,7 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 ### FR-3 — Classification & routing
 | ID | Requirement | Pri | Acceptance |
 |----|-------------|-----|-----------|
-| FR-3.1 | Cascade classifier: classical/cheap tier → Grok fallback → (rare) OpenAI. | P0 | Most tickets resolved at the cheap tier; fallback only on uncertainty. |
+| FR-3.1 | Cascade classifier: classical/cheap tier → Groq fallback → (rare) OpenAI. | P0 | Most tickets resolved at the cheap tier; fallback only on uncertainty. |
 | FR-3.2 | Output agency + complaint-type label with a **calibrated** confidence. | P0 | `routing_decision` row with `confidence_calibrated`. |
 | FR-3.3 | Detect multi-label / multi-agency cases. | P0 | Such cases flagged for the gate regardless of score. |
 | FR-3.4 | Score calibration (Platt/isotonic) on a held-out set + reliability curve. | P0 | ECE meets [NFR-4.1](#nfr-4--correctness--calibration); curve is an artifact. |
@@ -81,7 +81,7 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 | FR-8.12 | **End-to-end compounding-error eval** scoring the final outcome over the full pipeline. | P1 | E2E rate vs. per-stage product reported. |
 | FR-8.13 | Human override/edit captured as **labeled data** feeding eval/golden-set refresh. | P1 | `edited_fields` / `reject_reason` stored ([OBSERVABILITY §7](OBSERVABILITY.md#7-human-in-the-loop-feedback-loop)). |
 | FR-8.14 | **Inter-annotator agreement** (κ) on hand-labeled sets + human spot-checks. | P1 | ≥2 annotators; κ reported. |
-| FR-8.15 | **Provider-swap regression harness**: per-tier metric deltas across providers/versions. | P2 | OpenAI↔Grok / version bumps compared ([ADR-003](ADRs.md#adr-003)). |
+| FR-8.15 | **Provider-swap regression harness**: per-tier metric deltas across providers/versions. | P2 | OpenAI↔Groq / version bumps compared ([ADR-003](ADRs.md#adr-003)). |
 
 ### FR-9 — SLA risk (deferred / MVP-light)
 | ID | Requirement | Pri | Acceptance |
@@ -91,7 +91,7 @@ The contract. Functional requirements (`FR-x.y`) are prioritized **P0 / P1 / P2*
 ### FR-10 — Guardrails
 | ID | Requirement | Pri | Acceptance |
 |----|-------------|-----|-----------|
-| FR-10.1 | **PII detection + redaction** on ticket text before any external (OpenAI/Grok) LLM call and before telemetry. | P0 | No raw address/name/phone leaves the boundary ([NFR-8.4](#nfr-8--privacy--fairness)); verified by test. |
+| FR-10.1 | **PII detection + redaction** on ticket text before any external (OpenAI/Groq) LLM call and before telemetry. | P0 | No raw address/name/phone leaves the boundary ([NFR-8.4](#nfr-8--privacy--fairness)); verified by test. |
 | FR-10.2 | **Spend + concurrency circuit breaker**: per-day ceiling hard-stop, global concurrency cap, provider 429 backoff. | P0 | Breaker trips at 100% ceiling; queues, never drops ([OBSERVABILITY §6](OBSERVABILITY.md#6-cost-observability--spend-circuit-breaker)). |
 | FR-10.3 | **Structured-output enforcement**: classifier/agent agency constrained to a valid enum; agent `split into N` bounded (N ≤ cap). | P0 | Invalid agency / oversized split rejected pre-use. |
 | FR-10.4 | **Standing prompt-injection defense** (delimiting/spotlighting + injection heuristics), not just the red-team study. | P1 | Tool results treated as data; defense documented ([AI-ARCH §6](AI-ARCHITECTURE.md#6-safety-guardrails--red-team)). |
@@ -191,10 +191,10 @@ Scale posture: **demo-scale now, designed for scale** (per the intake decision).
 
 **LLM call budget (per day, ~700 new tickets):**
 - Cheap tier resolves ≥ 70% ⇒ ~490 tickets, **0 expensive calls**.
-- Grok fallback on ~30% ⇒ **~210 calls/day** (free/low-cost tier).
+- Groq fallback on ~30% ⇒ **~210 calls/day** (free/low-cost tier).
 - Ambiguous tail to agent ≈ 12% ⇒ ~85 tickets × ~6 OpenAI calls ⇒ **~510 agent calls/day**.
 - Drafting: ~700 routed × ~1.3 (incl. occasional repair) ⇒ **~910 generations/day**.
 
-**Cost envelope:** dominated by the agent tail + drafting (OpenAI), not the bulk (classical tier + Grok) — exactly what the cascade + gate are for. Per-ticket targets in [NFR-2.2](#nfr-2--cost). Exact dollars depend on current OpenAI / xAI pricing; the **structure** is what bounds spend, and it holds as volume grows because the cheap-tier ratio (NFR-2.1) is roughly volume-invariant.
+**Cost envelope:** dominated by the agent tail + drafting (OpenAI), not the bulk (classical tier + Groq) — exactly what the cascade + gate are for. Per-ticket targets in [NFR-2.2](#nfr-2--cost). Exact dollars depend on current OpenAI / Groq pricing; the **structure** is what bounds spend, and it holds as volume grows because the cheap-tier ratio (NFR-2.1) is roughly volume-invariant.
 
 **Headroom to citywide:** ×~12 volume (≈ 3M/yr, ~8–10k/day). Mitigations already designed in: monthly partitioning (NFR-7.1), the volume-invariant cascade ratio (NFR-7.2), and a pgvector→dedicated-vector-DB swap behind the same access pattern. No pipeline rearchitecture required.
