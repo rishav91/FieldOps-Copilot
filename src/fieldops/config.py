@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     xai_base_url: str = "https://api.x.ai/v1"
     embedding_dim: int = 1536
 
+    # Dedup knobs (FR-2) — geo/time window + cosine threshold
+    dedup_cosine_threshold: float = 0.15  # max cosine distance to call a duplicate
+    dedup_geo_meters: float = 150.0
+    dedup_time_days: int = 7
+
     # Pipeline knobs (gate / agent / spend) — see REQUIREMENTS FR-4, FR-5, FR-10
     gate_threshold: float = 0.75
     agent_turn_cap: int = 6
