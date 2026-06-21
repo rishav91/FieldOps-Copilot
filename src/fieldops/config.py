@@ -39,6 +39,8 @@ class Settings(BaseSettings):
 
     # Classifier knobs (FR-3)
     cheap_knn_k: int = 10  # neighbors for the cheap kNN tier
+    cheap_knn_max_distance: float = 0.30  # only count neighbors within this cosine distance
+    cascade_cheap_min_confidence: float = 0.7  # below this, escalate to an LLM tier
 
     # Pipeline knobs (gate / agent / spend) — see REQUIREMENTS FR-4, FR-5, FR-10
     gate_threshold: float = 0.75

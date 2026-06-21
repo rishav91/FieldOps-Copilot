@@ -3,7 +3,9 @@
 Phase 2 builds the cascade (cheap → Grok → OpenAI) with calibrated confidence
 and the confidence gate. Sub-phase 2.1 lands the agency taxonomy.
 """
+from .cascade import classify_cascade
 from .cheap import classify_cheap, vote
+from .llm_classify import classify_llm
 from .taxonomy import (
     AGENCIES,
     COMPLAINT_TYPE_TO_AGENCY,
@@ -22,4 +24,6 @@ __all__ = [
     "Prediction",
     "classify_cheap",
     "vote",
+    "classify_llm",
+    "classify_cascade",
 ]

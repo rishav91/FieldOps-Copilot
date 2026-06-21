@@ -31,15 +31,33 @@ def vote(agencies: Sequence[str | None]) -> tuple[str | None, float, int]:
     return top, n / len(valid), len(valid)
 
 
-def classify_cheap(session: Session, ticket: Ticket, *, k: int | None = None) -> Prediction:
-    """kNN-vote the agency; fall back to the complaint-type prior if unembedded."""
-    k = k or get_settings().cheap_knn_k
+def _prior(ticket: Ticket) -> Prediction:
+    prior = agency_for_complaint_type(ticket.complaint_type)
+    return Prediction(prior, 0.5 if prior else 0.0, "prior", 0)
+
+
+def classify_cheap(
+    session: Session,
+    ticket: Ticket,
+    *,
+    k: int | None = None,
+    max_distance: float | None = None,
+) -> Prediction:
+    """kNN-vote the agency over *close* neighbors; fall back to the prior.
+
+    Only neighbors within `max_distance` (cosine) vote, so unrelated tickets
+    don't pollute the result. With no embedding or no close neighbor, we defer to
+    the deterministic complaint-type prior.
+    """
+    s = get_settings()
+    k = k or s.cheap_knn_k
+    max_distance = s.cheap_knn_max_distance if max_distance is None else max_distance
+
     with span("classify.cheap", ticket_id=ticket.id) as sp:
         emb = session.get(Embedding, ticket.id)
         if emb is None:
-            prior = agency_for_complaint_type(ticket.complaint_type)
             sp["tier"] = "prior"
-            return Prediction(prior, 0.5 if prior else 0.0, "prior", 0)
+            return _prior(ticket)
 
         dist = Embedding.vector.cosine_distance(emb.vector)
         rows = session.execute(
@@ -47,10 +65,14 @@ def classify_cheap(session: Session, ticket: Ticket, *, k: int | None = None) ->
             .join(Ticket, Ticket.unique_key == Raw311Record.unique_key)
             .join(Embedding, Embedding.ticket_id == Ticket.id)
             .where(Ticket.id != ticket.id)
+            .where(dist <= max_distance)
             .order_by(dist)
             .limit(k)
         ).all()
         agency, confidence, n = vote([payload.get("agency") for (payload,) in rows])
+        if agency is None:  # no close, validly-labeled neighbor
+            sp["tier"] = "prior"
+            return _prior(ticket)
         sp["tier"] = "cheap-knn"
         sp["agency"] = agency
         return Prediction(agency, confidence, "cheap-knn", n)
