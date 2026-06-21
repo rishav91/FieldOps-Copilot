@@ -16,6 +16,13 @@ class Settings(BaseSettings):
     # Datastore (ADR-010)
     database_url: str = "postgresql+psycopg://fieldops:fieldops@localhost:5432/fieldops"
 
+    # 311 ingest (FR-1) — NYC Open Data Socrata SODA API
+    socrata_domain: str = "data.cityofnewyork.us"
+    socrata_dataset_id: str = "erm2-nwe9"  # 311 Service Requests
+    socrata_app_token: str | None = None  # raises the anonymous rate limit
+    socrata_page_size: int = 1000
+    socrata_timeout_s: float = 30.0
+
     # LLM providers (ADR-003): OpenAI primary, Grok cheap tier
     openai_api_key: str | None = None
     xai_api_key: str | None = None
