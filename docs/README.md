@@ -40,6 +40,7 @@ Every "should we add AI here?" is settled by this rule. It is the reason the wor
 These are deliberate engineering choices, disclosed up front:
 
 - **311 labels are ground truth.** `complaint_type`, `descriptor`, `agency`, `closed_date` already exist. The classifier/router *reproduces and could pre-fill* a decision the city already makes; the labels are **free evaluation ground truth**. Real-world analogue: cutting call-center handle time by pre-filling routing.
+- **The input is a post-intake, controlled-vocabulary record — not raw citizen narrative (DR-01).** NYC 311's `complaint_type`/`descriptor` are the city's *own taxonomized* fields (and the dataset only includes requests already directable to an agency), so the deterministic classifier reproduces a near-deterministic mapping — which is why its F1 is ~0.99 ([phase-2-gate](plans/phase-2-gate.md)). That is honestly **not evidence the agent is needed**. Any "raw ambiguous intake" the *agent* reasons over is **curated/synthetic and disclosed as such** — we'd be simulating the *input modality*, not merely amplifying a natural tail. The agent's real natural population is the **low-confidence tail** of the controlled-vocabulary data, not invented narratives.
 - **Linear is a simulated destination.** 311 has no work-order submission endpoint, so Linear stands in to demonstrate robust API integration + OAuth — not integration with a city system we don't have.
 - **The ambiguous "hard tail" may be amplified.** Genuinely multi-agency / multi-issue requests are a minority. If the natural population is too thin (the [Phase 2 gate](ROADMAP.md#phase-2)), we synthesize/amplify and **label it clearly**. See [ADR-006](ADRs.md#adr-006) and [ADR-009](ADRs.md#adr-009).
 
@@ -56,6 +57,12 @@ These are deliberate engineering choices, disclosed up front:
 | 7 | [EVAL-SPEC.md](EVAL-SPEC.md) | Offline correctness: metrics, eval-data governance, the agent-vs-baseline **statistical protocol**, judge validation, CI gates. |
 | 8 | [OBSERVABILITY.md](OBSERVABILITY.md) | Live behavior: tracing, SLOs + alerting, drift monitoring, spend circuit breaker, the override→label feedback loop. |
 | 9 | [ROADMAP.md](ROADMAP.md) | MVP-first phases with the GO/NO-GO ambiguity gate. |
+
+### Advisory review artifacts
+
+These documents record review findings and proposed changes. They are not part of the design contract until accepted recommendations are folded into the source-of-truth documents above.
+
+- [DESIGN-REVIEW.md](DESIGN-REVIEW.md) — pressure-tested issues and corresponding recommendations across the design suite, with emphasis on data fitness, the agent evaluation, and the human gate.
 
 ## Reading order
 

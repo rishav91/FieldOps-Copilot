@@ -47,18 +47,39 @@ Work-order drafts and resolution summaries.
 
 ## 5. Agent-path eval — the headline
 
-The central empirical bet. The triage agent must beat **two** baselines on the ambiguous set:
-- **Baseline A** — single classifier call (top label).
-- **Baseline B** — escalate all low-confidence to a human.
+The central empirical bet: **does the adaptive loop earn its place?** Answering that needs a baseline ladder where each rung changes *one* thing, plus agent-specific ground truth. Two studies (DR-03): a **machine-policy study** (this section) and a **human-workflow study** ([§5a](#5a-human-workflow-study-dr-03dr-07)).
 
-**Metrics:** routing/split **correctness**, **turn-count distribution**, **give-up rate**, **cost per resolution**, and **trace assertions** (e.g. *did it call `lookup_agency_jurisdiction` before deciding to split?* — queried from `agent_trace`, [OBSERVABILITY §2](OBSERVABILITY.md#2-tracing--correlation)).
+### The baseline ladder (DR-05 — information-matched control)
 
-**Statistical protocol ([FR-8.7](REQUIREMENTS.md#fr-8--evaluation--observability), [NFR-4.5](REQUIREMENTS.md#nfr-4--correctness--calibration)) — non-negotiable:**
-- **Sample size** `n` stated for the ambiguous set; power-checked so a meaningful delta is detectable.
-- **Bootstrap 95% confidence intervals** on the correctness delta (agent − baseline).
-- **Significance test** (paired, on per-ticket outcomes — McNemar for the paired binary correctness).
-- **Decision rule:** the agent ships only if the **lower bound of the 95% CI on (agent − Baseline B) > 0** — i.e. it's better *with confidence*, not on a point estimate. **If not, the agent is cut** ([PRD R3](PRD.md#7-risks)). Report natural-slice and synthetic results separately ([§2](#2-eval-datasets--governance)).
-- Report the **cost delta** alongside: a tiny accuracy win at large cost is still a cut candidate.
+| # | Condition | Tools/context | Adaptive loop |
+|---|-----------|---------------|---------------|
+| A | Single classifier call (top label) | ❌ | ❌ |
+| **C** | **Fixed retrieval + one structured call** | ✅ same tools, fetched once in parallel | ❌ |
+| Agent | Adaptive plan → act → reflect | ✅ | ✅ |
+| B | Escalate-all-to-human | — | — (abstains) |
+
+**Baseline C is the keystone (DR-05).** It gets the *same* allowed context the agent does (`find_similar_tickets`, `lookup_agency_jurisdiction`, `get_historical_resolutions`), fetched in one parallel shot → one structured LLM decision → deterministic validation — **matched to the agent on model family, available information, output schema, and (where practical) token budget.** Only the *loop* differs. Beating A proves "retrieval helps"; **beating C proves the loop helps** — that's the actual thesis ([ADR-001](ADRs.md#adr-001)). Report **tool ablations** and the fraction of cases where adaptive tool selection changed the evidence or the outcome. The agent earns its place only if it beats C by a margin that justifies its extra cost + latency.
+
+### Ground truth for the agent (DR-04)
+
+311's single recorded `agency` is fine for ordinary routing but **cannot establish whether intake should have been `split` or `escalate`d.** Use an **adjudicated ambiguous-case gold set** ([§2](#2-eval-datasets--governance)): outcomes `route(agency)` / `split(set[agency])` / `escalate(reason)`; two independent annotators + adjudication + agreement (κ); over-split / under-split defined; natural vs. curated/synthetic reported separately. `split` is a **secondary** capability ([phase-2-gate](plans/phase-2-gate.md)), so a small clearly-labeled set suffices — not a production adjudication pipeline.
+
+### Metrics
+
+Routing **correctness** (single-label); **set-based** split metrics (exact-match + precision/recall or Jaccard, not binary); **appropriate-abstention** scored *separately* from wrong routing; turn-count distribution; give-up rate; cost per resolution; **trace assertions** (e.g. *did it look up jurisdiction before splitting?* — from `agent_trace`, [OBSERVABILITY §2](OBSERVABILITY.md#2-tracing--correlation)).
+
+### Statistical protocol ([FR-8.7](REQUIREMENTS.md#fr-8--evaluation--observability), [NFR-4.5](REQUIREMENTS.md#nfr-4--correctness--calibration)) — non-negotiable
+
+- **Sample size** `n` stated; power-checked for a meaningful delta.
+- **Bootstrap 95% CIs** on the correctness delta; **paired significance test** (McNemar on per-ticket binary correctness).
+- **Decision rule:** the agent ships only if the **lower bound of the 95% CI on (agent − Baseline C) > 0** — i.e. it beats the *information-matched* control with confidence. **If not, keep the fixed workflow and cut the loop** ([PRD R3](PRD.md#7-risks)). Natural vs. synthetic reported separately.
+- Report the **cost/latency delta** alongside: a tiny accuracy win at large cost is a cut candidate.
+
+> **Baseline B is a cost/coverage reference, NOT a correctness comparator (DR-03).** "Escalate-all" abstains — it emits no route, so a correctness delta against it is undefined (and if escalation counts as auto-correct it's trivially unbeatable). Its role is the *cost/coverage* anchor: how much human load the agent removes vs. sending everything to a human. The ship gate is the CI on (agent − **C**), not (agent − B).
+
+### 5a. Human-workflow study (DR-03/DR-07)
+
+A separate, smaller study: **unaided human review vs. agent-assisted review.** Requires (i) final correctness **non-inferior** within a predeclared margin, (ii) active handling time / touches improved with a 95% CI, (iii) override / false-split / missed-split rates reported. Randomized, counterbalanced case assignment. A **minimal blinded harness** (records condition, active time, final decision, edits) is a **Phase-3 deliverable** ([ROADMAP](ROADMAP.md#phase-3)); the full review UI stays Phase 4. *Portfolio caveat: with no real intake handlers, use proxy reviewers and state that limitation — do not call it an operator study.*
 
 ## 6. End-to-end / compounding-error eval
 

@@ -28,9 +28,12 @@ MVP-first, **depth before breadth**. The order is deliberately chosen so the dif
 
 ## Phase 3
 **Intake triage agent + agent-vs-baseline proof.**
-**Goal:** the differentiator, built **with its proof in the same phase**.
-**Ships:** FR-5 (LangGraph loop, read-only tools, turn cap + graceful give-up, per-turn tracing, tool-arg validation, idempotency), and **simultaneously** the FR-8.3 agent-vs-baseline study — correctness, turn distribution, give-up rate, cost, trace assertions, vs. Baseline A (single classifier) and Baseline B (escalate-all). Meets [NFR-4.3](REQUIREMENTS.md#nfr-4--correctness--calibration).
-**Decision built in:** if the agent can't beat Baseline B, it is **cut** ([PRD R3](PRD.md#7-risks)) — the loop and its evidence are inseparable here, by design.
+**Goal:** the differentiator, built **with its proof in the same phase**, on the **low-confidence tail** (the agent's real population — [phase-2-gate](plans/phase-2-gate.md)).
+**Entry criteria (must hold before any live agent run — DR-16, DR-02, DR-08):**
+- Inference feature contract + typed `InferenceTicket` enforced ([FR-3.5](REQUIREMENTS.md#fr-3--classification--routing), [ADR-011](ADRs.md#adr-011)); as-of retrieval with self/duplicate exclusion ([FR-5.7](REQUIREMENTS.md#fr-5--intake-triage-agent)); leakage tests pass.
+- Spend/concurrency breaker + turn/split caps + structured args/outputs + instruction/data delimiting + malformed-output fallback active ([FR-10.2/10.3/10.4/10.5](REQUIREMENTS.md#fr-10--guardrails)); queue-on-breaker tested under concurrency.
+**Ships:** FR-5 (LangGraph loop, read-only tools, turn cap + graceful give-up, per-turn tracing, tool-arg validation, idempotency); the **information-matched Baseline C** (fixed retrieval + one call, [FR-8.3a](REQUIREMENTS.md#fr-8--evaluation--observability), DR-05) and the agent-vs-baseline study (correctness + set-based split metrics, CIs, trace assertions); an **adjudicated route/split/escalate gold set** ([FR-8.3b](REQUIREMENTS.md#fr-8--evaluation--observability), DR-04); and a **minimal blinded human-workflow harness** ([FR-8.3c](REQUIREMENTS.md#fr-8--evaluation--observability), DR-07 — records condition/time/decision, full UI stays Phase 4).
+**Exit / decision:** ships only if the agent beats **Baseline C** with a 95%-CI lower bound > 0 (DR-03/05); else keep the fixed workflow and **cut the loop** ([PRD R3](PRD.md#7-risks), [NFR-4.3](REQUIREMENTS.md#nfr-4--correctness--calibration)).
 **Unlocks:** the headline result; everything else is plumbing around a proven (or honestly-rejected) core.
 
 ## Phase 4

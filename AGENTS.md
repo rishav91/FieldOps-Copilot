@@ -8,7 +8,7 @@ AI triage + work-order automation over **NYC 311 service requests**, built as a 
 
 ## Current state
 
-**Design phase — no application code yet.** The repo holds the design suite. Implementation follows [docs/ROADMAP.md](docs/ROADMAP.md) (Phase 0 = walking skeleton). When you add code, keep it consistent with the docs and update the relevant doc in the same change.
+**Implementation underway.** Phases 0–2 are implemented and merged (ingest, dedup, cascade classifier + calibration + confidence gate, discriminative eval); the Phase 2 GO/NO-GO gate is decided (recommended GO) and **Phase 3 (the agent + baseline proof) is not started**. Track status on **two axes** — *implementation* (planned / in-progress / complete) and *validation* (pending / partial / complete); a phase is not "validated" until its exit criteria are met (some Phase 1/2 exit criteria remain partial). Follow [docs/ROADMAP.md](docs/ROADMAP.md); when you add code, keep it consistent with the docs and update the relevant doc in the same change.
 
 ## The design suite (source of truth)
 
